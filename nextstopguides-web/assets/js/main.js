@@ -1,10 +1,10 @@
 /* =====================================================================
    NextStopGuides — main.js (vanilla JavaScript, no libraries)
    ---------------------------------------------------------------------
-   1. Links & prices from config.js
+   1. Links & config-driven text from config.js
    2. Language selector (EN in index.html, other languages in i18n.js)
    3. Mobile menu, sticky header, FAQ accordion, newsletter, animations
-   Load order in HTML: config.js → i18n.js → main.js (all with defer).
+   Load order in HTML: config.js → i18n.js → data/*.js → catalog.js → main.js (all defer).
    ===================================================================== */
 (function () {
   'use strict';
@@ -88,15 +88,18 @@
     }
   }
 
-  function applyPrices() {
-    var products = CFG.products || {};
-    $all('[data-price]').forEach(function (el) {
-      var p = products[el.getAttribute('data-price')];
-      if (p && p.price) el.textContent = p.price;
+  /* <x data-config-wrap="partners.hotelsProvider" hidden> … <span data-config-text></span></x>
+     → filled and shown only when the config value is set */
+  function applyConfigText() {
+    // "Coming soon" badges: visible only while the linked config value is still a placeholder
+    $all('[data-when-missing]').forEach(function (el) {
+      el.hidden = !isPlaceholder(getConfig(el.getAttribute('data-when-missing')));
     });
-    $all('[data-price-try]').forEach(function (el) {
-      var p = products[el.getAttribute('data-price-try')];
-      if (p && p.priceTRY) el.textContent = p.priceTRY;
+    $all('[data-config-wrap]').forEach(function (wrap) {
+      var value = getConfig(wrap.getAttribute('data-config-wrap'));
+      if (isPlaceholder(value)) { wrap.hidden = true; return; }
+      $all('[data-config-text]', wrap).forEach(function (el) { el.textContent = value; });
+      wrap.hidden = false;
     });
   }
 
@@ -124,6 +127,7 @@
     $all('[data-i18n]').forEach(function (el) {
       if (!originals.has(el)) originals.set(el, el.innerHTML);
       var t = str(el.getAttribute('data-i18n'));
+      if (t !== undefined && el.hasAttribute('data-n')) t = String(t).replace(/\{n\}/g, el.getAttribute('data-n'));
       el.innerHTML = t !== undefined ? t : originals.get(el);
     });
 
@@ -140,8 +144,10 @@
       });
     });
 
-    document.title = str('meta.title') || original.title;
-    if (metaDesc) metaDesc.setAttribute('content', str('meta.description') || original.desc);
+    var titleKey = document.documentElement.getAttribute('data-title-key') || 'meta.title';
+    var descKey = document.documentElement.getAttribute('data-desc-key') || 'meta.description';
+    if (titleKey !== 'none') document.title = str(titleKey) || original.title;
+    if (metaDesc && descKey !== 'none') metaDesc.setAttribute('content', str(descKey) || original.desc);
     if (ogLocale && I18N.ogLocale && I18N.ogLocale[currentLang]) ogLocale.setAttribute('content', I18N.ogLocale[currentLang]);
     if (canonical && original.canonical) {
       canonical.setAttribute('href', original.canonical + (currentLang === 'en' ? '' : '?lang=' + currentLang));
@@ -150,6 +156,7 @@
     updateLangControls();
     updateMenuLabel();
     storageSet('nsg-lang', currentLang);
+    try { document.dispatchEvent(new CustomEvent('nsg:langchange', { detail: { lang: currentLang } })); } catch (e) { /* very old browser */ }
 
     if (opts.updateUrl && window.history && window.history.replaceState) {
       try {
@@ -391,6 +398,51 @@
     $all('[data-year]').forEach(function (el) { el.textContent = String(new Date().getFullYear()); });
   }
 
+  /* ------------------------ copy a config value (e.g. Airalo code) ------------------------ */
+  function copyFallback(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (e) { /* ignore */ }
+    document.body.removeChild(ta);
+  }
+  function initCopy() {
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest ? e.target.closest('[data-copy-config]') : null;
+      if (!b) return;
+      var value = getConfig(b.getAttribute('data-copy-config'));
+      if (isPlaceholder(value)) return;
+      var done = function () { toast(msg('codeCopied')); };
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(value).then(done, function () { copyFallback(value); done(); });
+      } else { copyFallback(value); done(); }
+    });
+  }
+
+  /* ------------------------ local preview (double-clicked file) ------------------------ */
+  /* On the live site "guides/japan-7-day-itinerary/" works; opened from disk the browser would
+     show a folder listing, so we point such links at the folder's index.html. */
+  function initLocalLinks() {
+    if (window.location.protocol !== 'file:') return;
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest ? e.target.closest('a[href]') : null;
+      if (!a) return;
+      var href = a.getAttribute('href');
+      if (/^([a-z]+:|\/\/|#)/i.test(href)) return;
+      var hashAt = href.indexOf('#');
+      var path = hashAt > -1 ? href.slice(0, hashAt) : href;
+      var hash = hashAt > -1 ? href.slice(hashAt) : '';
+      if (path === '' ) return;
+      if (/\/$/.test(path) || path === '.' || path === '..') {
+        a.setAttribute('href', path.replace(/\/?$/, '/') + 'index.html' + hash);
+      }
+    }, true);
+  }
+
   /* ------------------------ privacy page: jump to visitor's language ------------------------ */
   function initFollowLang() {
     if (!document.body.hasAttribute('data-follow-lang')) return;
@@ -407,7 +459,9 @@
   /* ------------------------ start ------------------------ */
   initFollowLang();
   applyLinks();
-  applyPrices();
+  applyConfigText();
+  initLocalLinks();
+  initCopy();
   initLanguage();
   initMenu();
   initHeader();

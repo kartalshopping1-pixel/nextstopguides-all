@@ -1,62 +1,50 @@
 /* =====================================================================
    NextStopGuides — SİTE AYARLARI (config.js)
    ---------------------------------------------------------------------
-   Sitedeki TÜM dış linkler ve fiyatlar burada. Sadece tırnak ("...")
-   içindeki değerleri değiştirin. Virgülleri ve süslü parantezleri silmeyin.
+   Mağaza, affiliate, sosyal medya ve iletişim linkleri burada.
+   Sadece tırnak ("...") içindeki değerleri değiştirin. Virgülleri ve
+   süslü parantezleri silmeyin.
 
    "BURAYA_" ile başlayan her değer henüz doldurulmamış demektir.
    Doldurulmamış linke tıklanınca site "Bu link yakında aktif" uyarısı
    gösterir; yani site bozulmaz.
+
+   REHBERLER (ürünler) artık burada DEĞİL: assets/data/guides.js
+   AMAZON paketleme listesi: assets/data/packing.js
    ===================================================================== */
 
 window.NSG_CONFIG = {
 
-  /* ---- Mağazalar --------------------------------------------------- */
-  shops: {
-    etsy:    "BURAYA_ETSY_MAGAZA_LINKI",      // örn: https://www.etsy.com/shop/NextStopGuides
-    shopier: "BURAYA_SHOPIER_MAGAZA_LINKI"    // örn: https://www.shopier.com/NextStopGuides
+  /* ---- Site adresi (canonical, sitemap ve paylaşım linkleri için) --- */
+  site: {
+    url: "https://thenextstopguides.com"      // sonunda / OLMADAN
   },
 
-  /* ---- Rehberler (ürünler) ------------------------------------------
-     price    : Etsy / uluslararası fiyat (sitede büyük yazılır)
-     priceTRY : Shopier fiyatı (sitede küçük yazılır)
-     etsy     : O ürünün Etsy ürün sayfası linki
-     shopier  : O ürünün Shopier ürün sayfası linki
-     NOT: Fiyatı değiştirirseniz index.html içindeki JSON-LD bölümündeki
-     "price" değerini de güncelleyin (README'de anlatılıyor).            */
-  products: {
-    istanbul: {
-      price:    "$9.99",
-      priceTRY: "₺349",
-      etsy:     "BURAYA_ETSY_ISTANBUL_URUN_LINKI",
-      shopier:  "BURAYA_SHOPIER_ISTANBUL_URUN_LINKI"
-    },
-    cappadocia: {
-      price:    "$8.99",
-      priceTRY: "₺299",
-      etsy:     "BURAYA_ETSY_KAPADOKYA_URUN_LINKI",
-      shopier:  "BURAYA_SHOPIER_KAPADOKYA_URUN_LINKI"
-    },
-    antalya: {
-      price:    "$8.99",
-      priceTRY: "₺299",
-      etsy:     "BURAYA_ETSY_ANTALYA_URUN_LINKI",
-      shopier:  "BURAYA_SHOPIER_ANTALYA_URUN_LINKI"
-    },
-    europe: {
-      price:    "$12.99",
-      priceTRY: "₺449",
-      etsy:     "BURAYA_ETSY_AVRUPA_URUN_LINKI",
-      shopier:  "BURAYA_SHOPIER_AVRUPA_URUN_LINKI"
-    }
+  /* ---- Mağazalar --------------------------------------------------- */
+  shops: {
+    etsy:    "https://www.etsy.com/shop/TheNextStopGuides",
+    shopier: "https://www.shopier.com/NextStopGuides"   // Türkçe baskıların satıldığı mağaza
   },
 
   /* ---- Affiliate (ortaklık) linkleri -------------------------------
-     Partner programlarından aldığınız size özel takip linkleri.       */
+     Partner programlarından aldığınız size özel takip linkleri.
+     Doldurulmamış (BURAYA_...) kartlarda "Yakında" etiketi görünür.
+     Travelpayouts marker (referans için): 777810                      */
   affiliates: {
-    airalo:       "BURAYA_AIRALO_AFFILIATE_LINKI",
-    booking:      "BURAYA_BOOKING_AFFILIATE_LINKI",
-    getyourguide: "BURAYA_GETYOURGUIDE_AFFILIATE_LINKI"
+    airalo:         "https://airalo.tpo.mx/xrqDdjIy",   // Travelpayouts → Airalo (Sub ID "site")
+    airaloCode:     "",                                 // (isteğe bağlı) indirim/tavsiye kodu; doluysa kartta "Kopyala" kutusu çıkar
+    klook:          "https://klook.tpo.mx/L75DmiXc",    // Travelpayouts → Klook (Japonya sayfası)
+    welcomepickups: "https://tpo.mx/4NHBkmvm",          // Travelpayouts → Welcome Pickups
+    hotels:         "BURAYA_OTEL_AFFILIATE_LINKI"       // Travelpayouts otel programı (belli olunca)
+  },
+
+  /* ---- Partner adları ----------------------------------------------
+     "Oteller" kartının altında küçük "Partner: ..." yazısı çıkar.
+     Otel partneriniz belli olunca adını yazın (örn. "Booking.com",
+     "Hotellook", "Agoda"). Doldurulmazsa bu satır hiç görünmez.       */
+  partners: {
+    hotelsProvider: "BURAYA_OTEL_PARTNERI_ADI",
+    travelpayoutsMarker: "777810"
   },
 
   /* ---- Sosyal medya ------------------------------------------------ */
@@ -67,9 +55,10 @@ window.NSG_CONFIG = {
     pinterest: "BURAYA_PINTEREST_LINKI"
   },
 
-  /* ---- İletişim ---------------------------------------------------- */
+  /* ---- İletişim ----------------------------------------------------
+     Doldurulursa "Destinasyon iste" butonu bu adrese e-posta açar.    */
   contact: {
-    email: "BURAYA_ILETISIM_EPOSTA"           // örn: hello@nextstopguides.com
+    email: "BURAYA_ILETISIM_EPOSTA"           // örn: hello@thenextstopguides.com
   },
 
   /* ---- Bülten (newsletter) formu -----------------------------------

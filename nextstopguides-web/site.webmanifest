@@ -1,7 +1,7 @@
 {
   "name": "NextStopGuides",
   "short_name": "NextStop",
-  "description": "Digital travel guides for Istanbul, Cappadocia, Antalya and budget Europe trips.",
+  "description": "Ready-to-follow printable travel itineraries with verified hotels, restaurants and booking links. Now featuring Japan.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

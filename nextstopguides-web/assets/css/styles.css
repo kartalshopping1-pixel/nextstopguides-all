@@ -56,6 +56,17 @@ body { overflow-x: hidden; -webkit-font-smoothing: antialiased; }
 .lang-item[aria-checked="true"] { background: #effaf8; color: #15625e; font-weight: 600; box-shadow: inset 3px 0 0 #177a74; }
 .lang-pill[aria-pressed="true"] { background: #15625e; border-color: #15625e; color: #fff; }
 
+/* Catalog filter chips — active */
+.cat-chip[aria-pressed="true"] { background: #15625e; border-color: #15625e; color: #fff; }
+
+/* Deep link highlight (#adapter on the packing list, #airalo on the home page) */
+[data-deeplink] { transition: box-shadow .3s ease; }
+[data-deeplink].is-target { animation: pk-flash 2.6s ease; }
+@keyframes pk-flash {
+  0%, 60% { box-shadow: 0 0 0 3px #ea580c, 0 18px 40px -20px rgba(234, 88, 12, .6); }
+  100% { box-shadow: 0 0 0 1px rgba(15, 27, 45, .05); }
+}
+
 /* Links not yet configured in config.js */
 a.is-placeholder { cursor: help; }
 
