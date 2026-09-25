@@ -156,9 +156,9 @@ Doldurulmazsa form bir şey göndermez; ziyaretçiye "Kayıt çok yakında açı
 
 ## 6. SEO kontrol listesi (Google'da çıkmak için)
 
-Site şu an Cloudflare Pages'te yayında: **`https://nextstopguides-all.pages.dev`** ve dosyalardaki adresler buna göre ayarlı.
-İleride kendi alan adınızı (örn. `https://www.nextstopguides.com`) bağladığınızda aşağıdaki dosyalarda
-**Ctrl + H (Bul ve Değiştir)** ile `https://nextstopguides-all.pages.dev` yazan her yeri yeni adresle değiştirin:
+Site şu adreste yayında: **`https://thenextstopguides.com`** (yedek adres: `https://nextstopguides-all.pages.dev`) ve dosyalardaki adresler buna göre ayarlı.
+Alan adını ileride değiştirirseniz aşağıdaki dosyalarda
+**Ctrl + H (Bul ve Değiştir)** ile `https://thenextstopguides.com` yazan her yeri yeni adresle değiştirin:
 
 - [ ] `index.html` → `canonical`, `hreflang`, `og:url`, `og:image`, `twitter:image` ve JSON-LD içindeki tüm adresler
 - [ ] `privacy.html` → `canonical`, `og:url`, `og:image`
