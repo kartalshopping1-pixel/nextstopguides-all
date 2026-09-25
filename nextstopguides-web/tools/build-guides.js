@@ -854,6 +854,28 @@ function cleanStale() {
   return removed;
 }
 
+/* ---------- cache busting ----------
+   The domain's browser cache keeps JS/CSS for hours, so a returning visitor
+   could mix fresh HTML with stale scripts. Every local .js/.css reference in
+   every page gets ?v=<content hash>, which changes only when the file does. */
+function stampAssets() {
+  const crypto = require('crypto');
+  const hash = (rel) => {
+    const f = path.join(ROOT, rel);
+    return fs.existsSync(f) ? crypto.createHash('md5').update(fs.readFileSync(f)).digest('hex').slice(0, 8) : null;
+  };
+  const pages = ['index.html', 'privacy.html', '404.html', 'guides/index.html', 'packing-list/index.html',
+    ...GUIDES.map((g) => `guides/${g.slug}/index.html`)];
+  pages.forEach((p) => {
+    const file = path.join(ROOT, p);
+    if (!fs.existsSync(file)) return;
+    const html = fs.readFileSync(file, 'utf8');
+    const out = html.replace(/((?:src|href)=")((?:\.\.\/|\/)*)(assets\/[\w./-]+\.(?:js|css))(?:\?v=\w+)?"/g,
+      (m, attr, prefix, rel) => { const v = hash(rel); return v ? `${attr}${prefix}${rel}?v=${v}"` : m; });
+    if (out !== html) fs.writeFileSync(file, out);
+  });
+}
+
 /* ------------------------------ run ------------------------------ */
 const removed = cleanStale();
 buildIndex();
@@ -861,6 +883,7 @@ buildGuidesIndex();
 GUIDES.forEach(buildGuidePage);
 buildPacking();
 buildSitemap();
+stampAssets();
 
 console.log(`\n✔ NextStopGuides build tamam / done — ${GUIDES.length} rehber / guides, ${liveItems.length} Amazon ürünü / packing items live\n`);
 written.forEach((f) => console.log('  ✎ ' + f));
