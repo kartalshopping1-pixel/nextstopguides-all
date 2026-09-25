@@ -1,0 +1,73 @@
+/* =====================================================================
+   NextStopGuides — custom styles (Tailwind handles most styling)
+   ===================================================================== */
+
+html { scroll-behavior: smooth; scroll-padding-top: 5rem; }
+body { overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* Keyboard focus — visible and on-brand */
+:focus-visible { outline: 3px solid #ea580c; outline-offset: 3px; border-radius: 6px; }
+
+/* Skip link */
+.skip-link { position: absolute; left: 1rem; top: -4rem; z-index: 100; transition: top .2s; }
+.skip-link:focus { top: 1rem; }
+
+/* Sticky header shadow after scrolling */
+#site-header { transition: box-shadow .25s ease, background-color .25s ease; }
+#site-header.is-scrolled { box-shadow: 0 6px 24px -12px rgba(15, 27, 45, .25); background-color: rgba(253, 250, 244, .95); }
+
+/* Hero background pattern (pure CSS, no image needed) */
+.hero-bg {
+  background:
+    radial-gradient(60rem 30rem at 110% -10%, rgba(36, 151, 142, .18), transparent 60%),
+    radial-gradient(40rem 24rem at -10% 110%, rgba(234, 88, 12, .14), transparent 60%),
+    #fdfaf4;
+}
+.dot-grid {
+  background-image: radial-gradient(rgba(15, 27, 45, .09) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+/* Card hover lift */
+.card-lift { transition: transform .3s ease, box-shadow .3s ease; }
+.card-lift:hover { transform: translateY(-4px); box-shadow: 0 20px 40px -20px rgba(15, 27, 45, .35); }
+
+/* Floating hero postcards */
+@keyframes float { 0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); } 50% { transform: translateY(-8px) rotate(var(--r, 0deg)); } }
+.float { animation: float 6s ease-in-out infinite; }
+.float-delay { animation-delay: -3s; }
+
+/* Reveal on scroll (only when JS is running — content stays visible without JS) */
+.js .reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
+.js .reveal.is-visible { opacity: 1; transform: none; }
+
+/* FAQ accordion */
+.faq-icon { transition: transform .25s ease; }
+.faq-btn[aria-expanded="true"] .faq-icon { transform: rotate(45deg); }
+.faq-panel:not([hidden]) { animation: faq-open .25s ease; }
+@keyframes faq-open { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+/* Language selector — current language */
+.lang-item[aria-checked="true"] { background: #effaf8; color: #15625e; font-weight: 600; box-shadow: inset 3px 0 0 #177a74; }
+.lang-pill[aria-pressed="true"] { background: #15625e; border-color: #15625e; color: #fff; }
+
+/* Links not yet configured in config.js */
+a.is-placeholder { cursor: help; }
+
+/* Toast message */
+.nsg-toast {
+  position: fixed; left: 50%; bottom: 1.25rem; z-index: 60;
+  transform: translate(-50%, 150%); opacity: 0;
+  max-width: calc(100vw - 2rem);
+  background: #0f1b2d; color: #fdfaf4;
+  padding: .75rem 1.1rem; border-radius: 9999px;
+  font-size: .9rem; font-weight: 500; text-align: center;
+  box-shadow: 0 12px 30px -10px rgba(15, 27, 45, .5);
+  transition: transform .3s ease, opacity .3s ease;
+}
+.nsg-toast.is-visible { transform: translate(-50%, 0); opacity: 1; }

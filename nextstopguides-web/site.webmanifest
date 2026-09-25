@@ -1,0 +1,14 @@
+{
+  "name": "NextStopGuides",
+  "short_name": "NextStop",
+  "description": "Digital travel guides for Istanbul, Cappadocia, Antalya and budget Europe trips.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fdfaf4",
+  "theme_color": "#15625e",
+  "lang": "en",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

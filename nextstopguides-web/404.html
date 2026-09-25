@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Page not found — NextStopGuides</title>
+  <meta name="description" content="This page could not be found. Head back to NextStopGuides to browse our digital travel guides.">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#15625e">
+  <!-- Absolute paths: this page may be shown at any URL by the host (Netlify, GitHub Pages, Cloudflare). -->
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <style>
+    :root { color-scheme: light; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 1.5rem;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      color: #0f1b2d; text-align: center;
+      background:
+        radial-gradient(40rem 20rem at 100% 0%, rgba(36,151,142,.18), transparent 60%),
+        radial-gradient(30rem 18rem at 0% 100%, rgba(234,88,12,.14), transparent 60%),
+        #fdfaf4;
+    }
+    .emoji { font-size: 4rem; line-height: 1; }
+    h1 { font-size: clamp(1.8rem, 6vw, 2.75rem); margin: 1rem 0 .5rem; letter-spacing: -.02em; }
+    p { color: #3b4a5e; max-width: 32rem; margin: 0 auto .5rem; line-height: 1.6; }
+    .btns { margin-top: 1.75rem; display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap; }
+    a.btn { display: inline-block; padding: .85rem 1.5rem; border-radius: 9999px; font-weight: 600; text-decoration: none; }
+    .primary { background: #c93d0b; color: #fff; }
+    .primary:hover { background: #a8320c; }
+    .ghost { border: 1px solid rgba(15,27,45,.2); color: #0f1b2d; background: #fff; }
+    .ghost:hover { border-color: #177a74; color: #15625e; }
+    a:focus-visible { outline: 3px solid #ea580c; outline-offset: 3px; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="emoji" aria-hidden="true">🧭</div>
+    <h1>Wrong turn — this stop doesn’t exist</h1>
+    <p>The page you’re looking for has moved or never existed.</p>
+    <p lang="tr">Aradığınız sayfa bulunamadı.</p>
+    <p lang="de">Diese Seite wurde leider nicht gefunden.</p>
+    <p lang="fr">Cette page est introuvable.</p>
+    <p lang="es">No hemos encontrado esta página.</p>
+    <div class="btns">
+      <a class="btn primary" href="/">Back to home</a>
+      <a class="btn ghost" href="/#guides">Browse guides</a>
+    </div>
+  </main>
+</body>
+</html>

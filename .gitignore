@@ -1,0 +1,19 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.log
+
+# Node (web tools / future Tailwind build)
+node_modules/
+
+# Secrets
+.env
+.env.*
+*.pem
+*.key
+*.jks
+*.keystore
+*.p12

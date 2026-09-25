@@ -1,0 +1,18 @@
+# Static analysis configuration. Run with: flutter analyze
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - build/**
+    - "**/*.g.dart"
+
+linter:
+  rules:
+    # Style preferences (kept off to reduce noise; turn on if you like).
+    prefer_const_constructors: false
+    prefer_const_literals_to_create_immutables: false
+    prefer_const_declarations: false
+    # Useful extra safety rules.
+    avoid_print: true
+    cancel_subscriptions: true
+    close_sinks: true
