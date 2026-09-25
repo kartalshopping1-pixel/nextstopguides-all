@@ -4,4 +4,4 @@ User-agent: *
 Allow: /
 Disallow: /404.html
 
-Sitemap: https://www.nextstopguides.com/sitemap.xml
+Sitemap: https://nextstopguides-all.pages.dev/sitemap.xml
