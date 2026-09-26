@@ -603,8 +603,8 @@ ${catalogWidget(base)}
               <li class="flex gap-2"><span aria-hidden="true">🏆</span>${tx('span', 'trivia.f2')}</li>
               <li class="flex gap-2"><span aria-hidden="true">🎁</span>${tx('span', 'trivia.f3')}</li>
             </ul>
-            <a href="#newsletter" class="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 font-semibold text-ink transition hover:bg-sand-200">
-              ${tx('span', 'trivia.cta')} <span aria-hidden="true">🔔</span>
+            <a href="game/" class="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 font-semibold text-ink transition hover:bg-sand-200">
+              ${tx('span', 'trivia.cta')} <span aria-hidden="true">▶</span>
             </a>
           </div>
           <div class="mx-auto w-full max-w-sm" aria-hidden="true">
