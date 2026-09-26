@@ -23,17 +23,19 @@ const exists = (f) => fs.existsSync(path.join(root, f));
 const ctx = {};
 ctx.window = ctx;
 vm.createContext(ctx);
-['assets/js/config.js', 'assets/js/i18n.js', 'assets/data/guides.js', 'assets/data/packing.js']
+['assets/js/config.js', 'assets/js/i18n.js', 'assets/data/guides.js', 'assets/data/packing.js', 'assets/data/posts.js']
   .forEach((f) => vm.runInContext(read(f), ctx, { filename: f }));
 const I18N = ctx.NSG_I18N, CAT = ctx.NSG_CATALOG, PACK = ctx.NSG_PACKING, CFG = ctx.NSG_CONFIG;
+const POSTS = ctx.NSG_POSTS || [];
 const langs = Object.keys(I18N.languages);
 const problems = [];
 const info = [];
 
 /* ---------- pages ---------- */
 const pages = ['index.html', 'guides/index.html', 'packing-list/index.html']
-  .concat(CAT.guides.map((g) => `guides/${g.slug}/index.html`));
-const keys = new Set(['meta.title', 'meta.description']);
+  .concat(CAT.guides.map((g) => `guides/${g.slug}/index.html`))
+  .concat(POSTS.length ? ['blog/index.html'] : [], POSTS.map((p) => `blog/${p.slug}/index.html`));
+const keys = new Set(['meta.title', 'meta.description'].concat(POSTS.length ? ['blog.toc'] : []));
 pages.forEach((p) => {
   if (!exists(p)) { problems.push(`${p} yok / missing → run: node tools/build-guides.js`); return; }
   const html = read(p);
@@ -48,7 +50,7 @@ pages.forEach((p) => {
 });
 
 /* ---------- keys used by JS templates (catalog.js: t(lang, 'key')) ---------- */
-const catalogSrc = read('assets/js/catalog.js');
+const catalogSrc = read('assets/js/catalog.js') + '\n' + (exists('assets/js/blog.js') ? read('assets/js/blog.js') : '');
 catalogSrc.replace(/\bt\(\s*lang\s*,([^)]*)\)/g, (_, args) => {
   args.replace(/'([a-zA-Z]+\.[a-zA-Z0-9.]+)'/g, (__, k) => keys.add(k));
 });
@@ -117,10 +119,34 @@ PACK.items.forEach((it, i) => {
 });
 Object.keys(PACK.categories).forEach((c) => langs.forEach((l) => { if (!PACK.categories[c][l]) problems.push(`packing categories.${c}: ${l} missing`); }));
 
+/* ---------- blog posts ---------- */
+const postSlugs = new Set();
+POSTS.forEach((p, i) => {
+  const w = `posts.js #${i + 1} (${p.slug})`;
+  if (postSlugs.has(p.slug)) problems.push(`${w}: duplicate slug`);
+  postSlugs.add(p.slug);
+  langs.forEach((l) => {
+    const t = p.text && p.text[l];
+    if (!t || !t.title || !t.description) problems.push(`${w}: ${l} title/description missing`);
+  });
+  ['en', 'tr'].forEach((l) => {
+    if (!exists(`content/blog/${p.slug}/${l}.md`)) problems.push(`${w}: content/blog/${p.slug}/${l}.md missing (full ${l} article required)`);
+  });
+  langs.filter((l) => !['en', 'tr'].includes(l)).forEach((l) => {
+    if (!exists(`content/blog/${p.slug}/${l}.md`)) info.push(`${w}: no ${l}.md → English body + "available in English" note`);
+  });
+  (p.guides || []).forEach((s) => { if (!CAT.guides.some((g) => g.slug === s)) problems.push(`${w}: unknown guide '${s}'`); });
+  if (exists(`content/blog/${p.slug}/en.md`)) {
+    const words = read(`content/blog/${p.slug}/en.md`).replace(/\]\([^)]*\)/g, ']').split(/\s+/).filter(Boolean).length;
+    if (words < 600) info.push(`${w}: English article is short (${words} words)`);
+  }
+});
+
 /* ---------- sitemap ---------- */
 const sitemap = exists('sitemap.xml') ? read('sitemap.xml') : '';
 const site = CFG.site.url.replace(/\/$/, '');
-[site + '/', site + '/guides/'].concat(CAT.guides.map((g) => `${site}/guides/${g.slug}/`)).forEach((u) => {
+[site + '/', site + '/guides/'].concat(CAT.guides.map((g) => `${site}/guides/${g.slug}/`))
+  .concat(POSTS.length ? [site + '/blog/'] : [], POSTS.map((p) => `${site}/blog/${p.slug}/`)).forEach((u) => {
   langs.forEach((l) => {
     const loc = u + (l === 'en' ? '' : '?lang=' + l);
     if (!sitemap.includes(`<loc>${loc}</loc>`)) problems.push(`sitemap.xml: ${loc} missing → run build`);
@@ -129,7 +155,7 @@ const site = CFG.site.url.replace(/\/$/, '');
 
 /* ---------- report ---------- */
 console.log(`Languages: ${langs.join(', ')}`);
-console.log(`Pages checked: ${pages.length} | text keys used: ${keys.size} | messages: ${msgKeys.length} | guides: ${CAT.guides.length} | packing items: ${PACK.items.length}`);
+console.log(`Pages checked: ${pages.length} | text keys used: ${keys.size} | messages: ${msgKeys.length} | guides: ${CAT.guides.length} | packing items: ${PACK.items.length} | blog posts: ${POSTS.length}`);
 langs.forEach((l) => console.log(`  ${l}: ${Object.keys(S[l] || {}).length} strings, ${Object.keys(I18N.messages[l] || {}).length} messages`));
 if (info.length) console.log(`\nInfo (${info.length}):\n - ` + info.join('\n - '));
 if (problems.length) {

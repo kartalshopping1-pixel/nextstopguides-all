@@ -82,3 +82,34 @@ a.is-placeholder { cursor: help; }
   transition: transform .3s ease, opacity .3s ease;
 }
 .nsg-toast.is-visible { transform: translate(-50%, 0); opacity: 1; }
+
+/* =====================================================================
+   Blog article typography (.prose-nsg) — body HTML comes from content/blog/*.md
+   ===================================================================== */
+.prose-nsg { color: #3b4a5e; font-size: 1.0625rem; line-height: 1.75; overflow-wrap: anywhere; }
+.prose-nsg > * + * { margin-top: 1.1em; }
+.prose-nsg h2 {
+  margin-top: 2.2em; font-family: "Plus Jakarta Sans", Inter, system-ui, sans-serif;
+  font-size: 1.5rem; line-height: 1.3; font-weight: 800; color: #0f1b2d; scroll-margin-top: 6rem;
+}
+.prose-nsg h3 { margin-top: 1.7em; font-size: 1.2rem; line-height: 1.35; font-weight: 700; color: #0f1b2d; }
+.prose-nsg h2 + *, .prose-nsg h3 + * { margin-top: .6em; }
+.prose-nsg strong { color: #0f1b2d; font-weight: 700; }
+.prose-nsg a { color: #15625e; font-weight: 600; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.prose-nsg a:hover { color: #143f3d; text-decoration-thickness: 2px; }
+.prose-nsg a.partner-link::after { content: " ↗"; font-size: .85em; text-decoration: none; display: inline-block; }
+.prose-nsg ul, .prose-nsg ol { padding-left: 1.4em; }
+.prose-nsg ul { list-style: disc; }
+.prose-nsg ol { list-style: decimal; }
+.prose-nsg li + li { margin-top: .45em; }
+.prose-nsg li::marker { color: #177a74; font-weight: 700; }
+.prose-nsg .tip {
+  border-left: 4px solid #177a74; border-radius: 1rem; background: #effaf8;
+  padding: 1rem 1.25rem; color: #0f1b2d; font-size: 1rem;
+}
+.prose-nsg .toc { border-radius: 1rem; background: #faf3e6; padding: 1rem 1.25rem; font-size: .95rem; }
+.prose-nsg .toc-title { font-size: .75rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #0f1b2d; }
+.prose-nsg .toc ol { margin-top: .5em; }
+.prose-nsg .toc a { font-weight: 500; text-decoration: none; }
+.prose-nsg .toc a:hover { text-decoration: underline; }
+@media (min-width: 640px) { .prose-nsg { font-size: 1.125rem; } .prose-nsg h2 { font-size: 1.75rem; } }

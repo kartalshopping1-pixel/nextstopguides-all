@@ -6,11 +6,13 @@
        node tools/build-guides.js
 
    Reads:  assets/js/config.js, assets/js/i18n.js,
-           assets/data/guides.js, assets/data/packing.js, assets/js/catalog.js
+           assets/data/guides.js, assets/data/packing.js, assets/data/posts.js,
+           content/blog/<slug>/<lang>.md, assets/js/catalog.js
    Writes: index.html
            guides/index.html
            guides/<slug>/index.html   (one SEO page per guide)
            packing-list/index.html
+           blog/index.html, blog/<slug>/index.html  (one page per article)
            sitemap.xml, robots.txt
    Also removes generated guide folders whose slug is no longer in the catalog.
    ===================================================================== */
@@ -36,7 +38,7 @@ const written = [];
 const ctx = {};
 ctx.window = ctx;
 vm.createContext(ctx);
-for (const f of ['assets/js/config.js', 'assets/js/i18n.js', 'assets/data/guides.js', 'assets/data/packing.js', 'assets/js/catalog.js']) {
+for (const f of ['assets/js/config.js', 'assets/js/i18n.js', 'assets/data/guides.js', 'assets/data/packing.js', 'assets/data/posts.js', 'assets/js/catalog.js']) {
   try { vm.runInContext(read(f), ctx, { filename: f }); }
   catch (e) { fail(`${f} okunamadı / could not be parsed:\n  ${e.message}\n  (Genelde eksik virgül, tırnak veya parantez.)`); }
 }
@@ -45,6 +47,7 @@ const SITE = String(CFG.site && CFG.site.url || '').replace(/\/+$/, '');
 const LANGS = Object.keys(I18N.languages);
 const EN = I18N.strings.en;
 const GUIDES = CAT.guides;
+const POSTS = ctx.NSG_POSTS || [];
 const esc = R.esc;
 
 function fail(msg) { console.error('\n✖ ' + msg + '\n'); process.exit(1); }
@@ -140,7 +143,7 @@ function head(o) {
   const ogAlt = LANGS.filter((l) => l !== 'en').map((l) => `  <meta property="og:locale:alternate" content="${I18N.ogLocale[l]}">`).join('\n');
   const img = o.image || DEFAULT_OG;
   const scripts = ['assets/js/config.js', 'assets/js/i18n.js', 'assets/data/guides.js']
-    .concat(o.extraData || [], ['assets/js/catalog.js', 'assets/js/main.js'])
+    .concat(o.extraData || [], ['assets/js/catalog.js'], o.extraJs || [], ['assets/js/main.js'])
     .map((s) => `  <script src="${o.base}${s}" defer></script>`).join('\n');
   const htmlAttrs = [
     o.titleKey ? `data-title-key="${o.titleKey}"` : '',
@@ -201,10 +204,10 @@ function header(base, active, onIndex) {
     guides: onIndex ? '#guides' : base + 'guides/',
     essentials: base + '#essentials',
     packing: base + 'packing-list/',
-    faq: base + '#faq',
+    blog: base + 'blog/',
     trivia: base + '#trivia'
   };
-  const items = [['guides', 'nav.guides'], ['essentials', 'nav.essentials'], ['packing', 'nav.packing'], ['faq', 'nav.faq'], ['trivia', 'nav.trivia']];
+  const items = [['guides', 'nav.guides'], ['blog', 'nav.blog'], ['essentials', 'nav.essentials'], ['packing', 'nav.packing'], ['trivia', 'nav.trivia']];
   const cur = (k) => (k === active ? ' aria-current="page"' : '');
   const desk = items.map(([k, key]) =>
     `        <li><a class="whitespace-nowrap transition hover:text-ocean-700${k === active ? ' text-ocean-700' : ''}" href="${href[k]}"${cur(k)} data-i18n="${key}">${T(key)}</a></li>`).join('\n');
@@ -285,6 +288,7 @@ ${social}
 ${guideLinks}
           <li><a class="font-semibold text-ocean-700 hover:text-ocean-900" href="${base}guides/" data-i18n="footer.allGuides">${T('footer.allGuides')}</a></li>
           <li><a class="hover:text-ocean-700" href="${base}packing-list/" data-i18n="footer.packing">${T('footer.packing')}</a></li>
+          <li><a class="hover:text-ocean-700" href="${base}blog/" data-i18n="footer.blog">${T('footer.blog')}</a></li>
         </ul>
       </nav>
       <nav aria-label="Footer: company">
@@ -425,7 +429,7 @@ function buildIndex() {
   const html = head({
     base, url: SITE + '/', title: T('meta.title'), desc: T('meta.description'), ld,
     imageAlt: 'NextStopGuides printable travel itineraries'
-  }) + `
+  , extraJs: ['assets/js/blog.js']}) + `
 
 <body class="bg-sand-50 font-sans text-ink antialiased">` + header(base, '', true) + `
 
@@ -495,6 +499,7 @@ ${catalogWidget(base)}
       </div>
     </section>
 
+${blogStrip(base)}
     <!-- ============================ TRAVEL ESSENTIALS / PARTNERS ============================ -->
     <section id="essentials" class="bg-sand-100 py-20 sm:py-24" aria-labelledby="essentials-title">
       <div class="mx-auto max-w-6xl px-4 sm:px-6">
@@ -803,13 +808,301 @@ ${R.packingHTML('en')}
   write('packing-list/index.html', html);
 }
 
+/* ============================ BLOG ============================
+   Data:  assets/data/posts.js (one entry per article)
+   Text:  content/blog/<slug>/<lang>.md  (en required, tr recommended,
+          de/fr/es optional → English body + "available in English" note)
+   Pages: blog/index.html, blog/<slug>/index.html, home-page strip.  */
+
+const POST_LANGS_BODY = (slug) => LANGS.filter((l) => exists(`content/blog/${slug}/${l}.md`));
+const postUrl = (p) => abs(`blog/${p.slug}/`);
+const postText = (p, lang) => (p.text && (p.text[lang] || p.text.en)) || {};
+const POSTS_SORTED = POSTS.slice().sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+
+function slugifyHeading(s) {
+  return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ı/g, 'i')
+    .replace(/<[^>]+>/g, '').replace(/&[a-z]+;/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'section';
+}
+
+function wordCount(src) {
+  return src.replace(/\]\([^)]*\)/g, ']').replace(/[#>*\-\[\]]/g, ' ').split(/\s+/).filter(Boolean).length;
+}
+
+/* Minimal Markdown → HTML: ## / ### headings, - and 1. lists, > tip boxes,
+   paragraphs, **bold**, *italic* and [links](special:targets). */
+function renderMarkdown(src, lang, base, file) {
+  const errors = [];
+  const guideSlugs = new Set(GUIDES.map((g) => g.slug));
+  const packIds = new Set(PACK.items.map((i) => i.id));
+  const postSlugs = new Set(POSTS.map((p) => p.slug));
+
+  function link(text, target) {
+    const [kind, ...rest] = target.split(':');
+    const val = rest.join(':');
+    if (/^https?$/.test(kind)) return `<a href="${target}" target="_blank" rel="noopener">${text}</a>`;
+    if (kind === 'guide') {
+      if (!guideSlugs.has(val)) errors.push(`unknown guide '${val}'`);
+      return `<a href="${base}guides/${val}/">${text}</a>`;
+    }
+    if (kind === 'packing') {
+      if (val && !packIds.has(val)) errors.push(`unknown packing item '${val}'`);
+      return `<a href="${base}packing-list/${val ? '#' + val : ''}">${text}</a>`;
+    }
+    if (kind === 'post') {
+      if (!postSlugs.has(val)) errors.push(`unknown post '${val}'`);
+      return `<a href="${base}blog/${val}/">${text}</a>`;
+    }
+    if (kind === 'page') return `<a href="${base}${val}">${text}</a>`;
+    if (kind === 'partner') {
+      const url = CFG.affiliates && CFG.affiliates[val];
+      if (url === undefined) { errors.push(`unknown partner '${val}'`); return text; }
+      if (!R.isUrl(url)) return text; // placeholder link → plain text
+      return `<a href="${esc(url)}" target="_blank" rel="sponsored noopener" class="partner-link">${text}</a>`;
+    }
+    errors.push(`unknown link type '${target}'`);
+    return text;
+  }
+
+  function inline(s) {
+    let h = esc(s);
+    h = h.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    h = h.replace(/(^|[\s(])\*([^*\s][^*]*?)\*(?=[\s.,;:!?)]|$)/g, '$1<em>$2</em>');
+    h = h.replace(/\[([^\]]+)\]\(([^)\s]*)\)/g, (m, text, target) => link(text, target));
+    return h;
+  }
+
+  const blocks = src.replace(/\r/g, '').trim().split(/\n\s*\n/);
+  const toc = [];
+  const used = new Set();
+  let html = '';
+  blocks.forEach((b) => {
+    const lines = b.split('\n').map((l) => l.trimEnd());
+    if (/^## /.test(lines[0]) && lines.length === 1) {
+      const text = lines[0].slice(3).trim();
+      let id = slugifyHeading(text); while (used.has(id)) id += '-2'; used.add(id);
+      toc.push({ id, html: inline(text) });
+      html += `<h2 id="${id}">${inline(text)}</h2>\n`;
+    } else if (/^### /.test(lines[0]) && lines.length === 1) {
+      html += `<h3>${inline(lines[0].slice(4).trim())}</h3>\n`;
+    } else if (lines.every((l) => /^- /.test(l))) {
+      html += '<ul>' + lines.map((l) => `<li>${inline(l.slice(2))}</li>`).join('') + '</ul>\n';
+    } else if (lines.every((l) => /^\d+\. /.test(l))) {
+      html += '<ol>' + lines.map((l) => `<li>${inline(l.replace(/^\d+\. /, ''))}</li>`).join('') + '</ol>\n';
+    } else if (lines.every((l) => /^>/.test(l))) {
+      html += `<aside class="tip"><p>${inline(lines.map((l) => l.replace(/^>\s?/, '')).join(' '))}</p></aside>\n`;
+    } else {
+      html += `<p>${inline(lines.join(' '))}</p>\n`;
+    }
+  });
+  if (errors.length) fail(`${file}:\n  - ` + errors.join('\n  - '));
+  const tocLabel = (I18N.strings[lang] && I18N.strings[lang]['blog.toc']) || T('blog.toc');
+  const tocHtml = toc.length >= 3
+    ? `<nav class="toc" aria-label="${esc(plain(tocLabel))}"><p class="toc-title">${tocLabel}</p><ol>${toc.map((h) => `<li><a href="#${h.id}">${h.html}</a></li>`).join('')}</ol></nav>\n`
+    : '';
+  return tocHtml + html;
+}
+
+(function validatePosts() {
+  const seen = new Set();
+  POSTS.forEach((p, i) => {
+    const w = `posts.js #${i + 1} (${p.slug || 'no slug'})`;
+    if (!p.slug || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(p.slug)) fail(`${w}: slug küçük harf-tire olmalı / must be lowercase-with-dashes.`);
+    if (seen.has(p.slug)) fail(`${w}: aynı slug iki kez / duplicate slug.`);
+    seen.add(p.slug);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(p.date || '')) fail(`${w}: date 'YYYY-AA-GG' olmalı / must be YYYY-MM-DD.`);
+    if (!p.text || !p.text.en || !p.text.en.title || !p.text.en.description) fail(`${w}: text.en.title ve description zorunlu / required.`);
+    if (!exists(`content/blog/${p.slug}/en.md`)) fail(`${w}: content/blog/${p.slug}/en.md bulunamadı / missing.`);
+    (p.guides || []).forEach((s) => { if (!GUIDES.some((g) => g.slug === s)) fail(`${w}: guides içinde bilinmeyen rehber / unknown guide '${s}'.`); });
+  });
+})();
+
+const POST_MINUTES = {};
+POSTS.forEach((p) => { POST_MINUTES[p.slug] = Math.max(1, Math.round(wordCount(read(`content/blog/${p.slug}/en.md`)) / 220)); });
+
+/* Per-language titles/summaries for the browser (blog.js) */
+function postsDataScript(list) {
+  const data = {};
+  list.forEach((p) => {
+    data[p.slug] = { date: p.date, t: {}, d: {} };
+    LANGS.forEach((l) => {
+      if (p.text[l] && p.text[l].title) data[p.slug].t[l] = p.text[l].title;
+      if (p.text[l] && p.text[l].description) data[p.slug].d[l] = p.text[l].description;
+    });
+  });
+  return `<script type="application/json" id="nsg-posts-data">${JSON.stringify(data).replace(/</g, '\\u003c')}</script>`;
+}
+
+function enDate(iso) {
+  return new Date(iso + 'T12:00:00Z').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+}
+
+function postCardHTML(p, base) {
+  const en = postText(p, 'en');
+  const mins = POST_MINUTES[p.slug];
+  return `<article class="card-lift relative flex flex-col overflow-hidden rounded-3xl border border-ink/10 bg-white">
+            <div class="flex h-32 items-center justify-center bg-gradient-to-br from-ocean-50 via-sand-100 to-coral-50 text-5xl" aria-hidden="true">${p.emoji || '📝'}</div>
+            <div class="flex flex-1 flex-col p-6">
+              <p class="text-xs font-semibold text-ink-soft"><time datetime="${p.date}" data-post-slug="${p.slug}" data-post-field="date">${enDate(p.date)}</time> · <span data-i18n="blog.minRead" data-n="${mins}">${T('blog.minRead', mins)}</span></p>
+              <h3 class="mt-2 font-display text-lg font-bold leading-snug"><a href="${base}blog/${p.slug}/" class="transition after:absolute after:inset-0 hover:text-ocean-700" data-post-slug="${p.slug}" data-post-field="title">${esc(en.title)}</a></h3>
+              <p class="mt-2 text-sm leading-relaxed text-ink-soft" data-post-slug="${p.slug}" data-post-field="description">${esc(en.description)}</p>
+              <p class="mt-auto pt-4 text-sm font-semibold text-ocean-700">${tx('span', 'blog.readMore')} <span aria-hidden="true">→</span></p>
+            </div>
+          </article>`;
+}
+
+/* Home page: latest 3 articles */
+function blogStrip(base) {
+  if (!POSTS.length) return '';
+  const latest = POSTS_SORTED.slice(0, 3);
+  return `
+    <!-- ============================ LATEST BLOG POSTS ============================ -->
+    <section id="blog" class="bg-sand-50 py-20 sm:py-24" aria-labelledby="blog-strip-title">
+      <div class="mx-auto max-w-6xl px-4 sm:px-6">
+        <div class="flex flex-wrap items-end justify-between gap-4">
+          <div class="max-w-2xl">
+            ${tx('p', 'blog.latestEyebrow', 'class="text-sm font-bold uppercase tracking-widest text-coral-600"')}
+            ${tx('h2', 'blog.latestTitle', 'id="blog-strip-title" class="mt-3 font-display text-3xl font-extrabold tracking-tight sm:text-4xl"')}
+          </div>
+          <a href="${base}blog/" class="inline-flex items-center gap-2 rounded-full border border-ink/15 bg-white px-5 py-2.5 text-sm font-semibold text-ink transition hover:border-ocean-600 hover:text-ocean-700">${tx('span', 'blog.viewAll')} <span aria-hidden="true">→</span></a>
+        </div>
+        <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          ${latest.map((p) => postCardHTML(p, base)).join('\n          ')}
+        </div>
+      </div>
+      ${postsDataScript(latest)}
+    </section>
+`;
+}
+
+/* ---------- blog/index.html ---------- */
+function buildBlogIndex() {
+  const base = '../';
+  const url = abs('blog/');
+  const ld = [
+    { '@type': 'Blog', name: plain(T('blog.titleSuffix')), url, description: plain(T('meta.blog.description')),
+      publisher: { '@id': SITE + '/#organization' },
+      blogPost: POSTS_SORTED.map((p) => ({ '@type': 'BlogPosting', headline: postText(p, 'en').title, url: postUrl(p), datePublished: p.date })) },
+    breadcrumbLD([[plain(T('nav.home')), SITE + '/'], [plain(T('nav.blog')), url]])
+  ];
+  const html = head({ base, url, title: T('meta.blog.title'), desc: T('meta.blog.description'), ld,
+    titleKey: 'meta.blog.title', descKey: 'meta.blog.description', extraJs: ['assets/js/blog.js'] }) + `
+
+<body class="bg-sand-50 font-sans text-ink antialiased">` + header(base, 'blog', false) + `
+
+  <main id="main">
+    <section class="hero-bg">
+      <div class="mx-auto max-w-6xl px-4 pb-10 pt-8 sm:px-6">
+        ${breadcrumbNav([['nav.home', base], ['nav.blog']])}
+        <div class="mt-8 max-w-2xl">
+          ${tx('p', 'blog.eyebrow', 'class="text-sm font-bold uppercase tracking-widest text-coral-600"')}
+          ${tx('h1', 'blog.title', 'class="mt-3 font-display text-4xl font-extrabold tracking-tight sm:text-5xl"')}
+          ${tx('p', 'blog.subtitle', 'class="mt-4 text-lg text-ink-soft"')}
+        </div>
+      </div>
+    </section>
+    <section class="pb-20 pt-6">
+      <div class="mx-auto grid max-w-6xl gap-6 px-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-3">
+          ${POSTS_SORTED.map((p) => postCardHTML(p, base)).join('\n          ')}
+      </div>
+      ${postsDataScript(POSTS_SORTED)}
+    </section>
+${essentialsBand(base)}
+  </main>
+` + footer(base);
+  write('blog/index.html', html);
+}
+
+/* ---------- blog/<slug>/index.html ---------- */
+function buildPost(p) {
+  const base = '../../';
+  const url = postUrl(p);
+  const en = postText(p, 'en');
+  const mins = POST_MINUTES[p.slug];
+  const bodies = {};
+  POST_LANGS_BODY(p.slug).forEach((l) => {
+    bodies[l] = renderMarkdown(read(`content/blog/${p.slug}/${l}.md`), l, base, `content/blog/${p.slug}/${l}.md`);
+  });
+  const guide = GUIDES.find((g) => g.slug === (p.guides || [])[0]) || GUIDES[0];
+  const image = { url: R.socialImage(guide.image), w: 1200, h: 1200 };
+  const ld = [
+    { '@type': 'BlogPosting', headline: en.title, description: en.description, datePublished: p.date, dateModified: p.date,
+      inLanguage: 'en', url, mainEntityOfPage: url, image: [image.url], keywords: (p.tags || []).join(', '),
+      author: { '@type': 'Organization', name: 'NextStopGuides', url: SITE + '/' },
+      publisher: { '@type': 'Organization', name: 'NextStopGuides', logo: { '@type': 'ImageObject', url: abs('favicon.svg') } } },
+    breadcrumbLD([[plain(T('nav.home')), SITE + '/'], [plain(T('nav.blog')), abs('blog/')], [en.title, url]])
+  ];
+  const others = POSTS_SORTED.filter((x) => x.slug !== p.slug).slice(0, 3);
+  const templates = Object.keys(bodies).filter((l) => l !== 'en')
+    .map((l) => `  <template data-post-lang="${l}">\n${bodies[l]}  </template>`).join('\n');
+  const relGuides = (p.guides || []).map((s) => GUIDES.find((g) => g.slug === s)).filter(Boolean);
+
+  const html = head({ base, url, title: `${en.title} — ${T('blog.titleSuffix')}`, desc: en.description, ld, ogType: 'article',
+    image, imageAlt: en.title, titleKey: 'none', descKey: 'none', extraJs: ['assets/js/blog.js'] }) + `
+
+<body class="bg-sand-50 font-sans text-ink antialiased" data-post="${p.slug}">` + header(base, 'blog', false) + `
+
+  <main id="main">
+    <div class="mx-auto max-w-3xl px-4 pt-6 sm:px-6">
+      ${breadcrumbNav([['nav.home', base], ['nav.blog', '../'], ['raw:' + en.title, null, ` data-post-slug="${p.slug}" data-post-field="title"`]])}
+    </div>
+
+    <header class="mx-auto max-w-3xl px-4 pt-8 sm:px-6">
+      <div class="text-5xl" aria-hidden="true">${p.emoji || '📝'}</div>
+      <h1 class="mt-4 font-display text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl lg:text-5xl" data-post-slug="${p.slug}" data-post-field="title">${esc(en.title)}</h1>
+      <p class="mt-4 text-lg leading-relaxed text-ink-soft" data-post-slug="${p.slug}" data-post-field="description">${esc(en.description)}</p>
+      <p class="mt-4 text-sm text-ink-soft">${tx('span', 'blog.published')} <time datetime="${p.date}" data-post-slug="${p.slug}" data-post-field="date">${enDate(p.date)}</time> · <span data-i18n="blog.minRead" data-n="${mins}">${T('blog.minRead', mins)}</span></p>
+      <p class="mt-6 rounded-2xl bg-white px-4 py-3 text-xs leading-relaxed text-ink-soft ring-1 ring-ink/10"><span aria-hidden="true">ℹ️</span> ${tx('span', 'blog.disclosure')} <a href="${base}privacy.html#affiliate" class="font-semibold text-ocean-700 underline underline-offset-2" data-i18n="blog.learnMore">${T('blog.learnMore')}</a></p>
+      <p class="mt-4 rounded-2xl bg-coral-50 px-4 py-3 text-sm font-medium text-coral-800" data-post-en-note hidden data-i18n="blog.enOnly">${T('blog.enOnly')}</p>
+    </header>
+
+    <article class="mx-auto max-w-3xl px-4 pb-16 pt-8 sm:px-6">
+      <div class="prose-nsg" data-post-body lang="en">
+${bodies.en}      </div>
+    </article>
+${templates}
+${relGuides.length ? `
+    <section class="bg-white py-16 sm:py-20" aria-labelledby="post-guides-title">
+      <div class="mx-auto max-w-6xl px-4 sm:px-6">
+        ${tx('h2', 'blog.related', 'id="post-guides-title" class="font-display text-2xl font-extrabold sm:text-3xl"')}
+        ${tx('p', 'blog.ctaDesc', 'class="mt-3 max-w-2xl text-ink-soft"')}
+        <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3" data-post-guides="${relGuides.map((g) => g.slug).join(',')}" data-base="${base}">
+${relGuides.map((g) => R.cardHTML(g, 'en', base)).join('\n')}
+        </div>
+      </div>
+    </section>` : ''}
+
+    <section class="py-16 sm:py-20" aria-labelledby="more-posts-title">
+      <div class="mx-auto max-w-6xl px-4 sm:px-6">
+        <div class="flex flex-wrap items-end justify-between gap-4">
+          ${tx('h2', 'blog.more', 'id="more-posts-title" class="font-display text-2xl font-extrabold sm:text-3xl"')}
+          ${tx('a', 'blog.back', 'href="../" class="text-sm font-semibold text-ocean-700 underline-offset-4 hover:underline"')}
+        </div>
+        <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          ${others.map((o) => postCardHTML(o, base)).join('\n          ')}
+        </div>
+      </div>
+    </section>
+    ${postsDataScript(POSTS)}
+  </main>
+` + footer(base);
+  write(`blog/${p.slug}/index.html`, html);
+}
+
+function buildBlog() {
+  if (!POSTS.length) return;
+  buildBlogIndex();
+  POSTS.forEach(buildPost);
+}
+
 /* ---------- sitemap.xml + robots.txt ---------- */
 function buildSitemap() {
   const today = new Date().toISOString().slice(0, 10);
   const pages = [
     { loc: SITE + '/', pri: '1.0', freq: 'weekly' },
     { loc: abs('guides/'), pri: '0.9', freq: 'weekly' }
-  ].concat(GUIDES.map((g) => ({ loc: guideUrl(g), pri: '0.8', freq: 'monthly' })));
+  ].concat(GUIDES.map((g) => ({ loc: guideUrl(g), pri: '0.8', freq: 'monthly' })))
+    .concat(POSTS.length ? [{ loc: abs('blog/'), pri: '0.8', freq: 'weekly' }] : [])
+    .concat(POSTS.map((p) => ({ loc: postUrl(p), pri: '0.7', freq: 'monthly', lastmod: p.date })));
   if (liveItems.length) pages.push({ loc: abs('packing-list/'), pri: '0.5', freq: 'monthly' });
 
   let out = `<?xml version="1.0" encoding="UTF-8"?>
@@ -821,7 +1114,7 @@ function buildSitemap() {
     const alts = LANGS.map((l) => `    <xhtml:link rel="alternate" hreflang="${l}" href="${p.loc}${l === 'en' ? '' : '?lang=' + l}"/>`).join('\n')
       + `\n    <xhtml:link rel="alternate" hreflang="x-default" href="${p.loc}"/>`;
     LANGS.forEach((l) => {
-      out += `  <url>\n    <loc>${p.loc}${l === 'en' ? '' : '?lang=' + l}</loc>\n${alts}\n    <lastmod>${today}</lastmod>\n    <changefreq>${p.freq}</changefreq>\n    <priority>${l === 'en' ? p.pri : (parseFloat(p.pri) - 0.1).toFixed(1)}</priority>\n  </url>\n`;
+      out += `  <url>\n    <loc>${p.loc}${l === 'en' ? '' : '?lang=' + l}</loc>\n${alts}\n    <lastmod>${p.lastmod || today}</lastmod>\n    <changefreq>${p.freq}</changefreq>\n    <priority>${l === 'en' ? p.pri : (parseFloat(p.pri) - 0.1).toFixed(1)}</priority>\n  </url>\n`;
     });
   });
   out += `  <url>\n    <loc>${abs('privacy.html')}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>yearly</changefreq>\n    <priority>0.3</priority>\n  </url>\n</urlset>\n`;
@@ -832,6 +1125,7 @@ User-agent: *
 Allow: /
 Disallow: /404.html
 Disallow: /tools/
+Disallow: /content/
 
 Sitemap: ${abs('sitemap.xml')}
 `);
@@ -839,17 +1133,18 @@ Sitemap: ${abs('sitemap.xml')}
 
 /* ---------- remove pages of deleted guides ---------- */
 function cleanStale() {
-  const dir = path.join(ROOT, 'guides');
-  if (!fs.existsSync(dir)) return [];
   const removed = [];
-  const slugs = new Set(GUIDES.map((g) => g.slug));
-  fs.readdirSync(dir, { withFileTypes: true }).forEach((d) => {
-    if (!d.isDirectory() || slugs.has(d.name)) return;
-    const f = path.join(dir, d.name, 'index.html');
-    if (fs.existsSync(f) && fs.readFileSync(f, 'utf8').includes('GENERATED by tools/build-guides.js')) {
-      fs.rmSync(path.join(dir, d.name), { recursive: true });
-      removed.push('guides/' + d.name + '/');
-    }
+  [['guides', new Set(GUIDES.map((g) => g.slug))], ['blog', new Set(POSTS.map((p) => p.slug))]].forEach(([folder, slugs]) => {
+    const dir = path.join(ROOT, folder);
+    if (!fs.existsSync(dir)) return;
+    fs.readdirSync(dir, { withFileTypes: true }).forEach((d) => {
+      if (!d.isDirectory() || slugs.has(d.name)) return;
+      const f = path.join(dir, d.name, 'index.html');
+      if (fs.existsSync(f) && fs.readFileSync(f, 'utf8').includes('GENERATED by tools/build-guides.js')) {
+        fs.rmSync(path.join(dir, d.name), { recursive: true });
+        removed.push(folder + '/' + d.name + '/');
+      }
+    });
   });
   return removed;
 }
@@ -865,7 +1160,8 @@ function stampAssets() {
     return fs.existsSync(f) ? crypto.createHash('md5').update(fs.readFileSync(f)).digest('hex').slice(0, 8) : null;
   };
   const pages = ['index.html', 'privacy.html', '404.html', 'guides/index.html', 'packing-list/index.html',
-    ...GUIDES.map((g) => `guides/${g.slug}/index.html`)];
+    ...GUIDES.map((g) => `guides/${g.slug}/index.html`),
+    ...(POSTS.length ? ['blog/index.html'] : []), ...POSTS.map((p) => `blog/${p.slug}/index.html`)];
   pages.forEach((p) => {
     const file = path.join(ROOT, p);
     if (!fs.existsSync(file)) return;
@@ -882,10 +1178,11 @@ buildIndex();
 buildGuidesIndex();
 GUIDES.forEach(buildGuidePage);
 buildPacking();
+buildBlog();
 buildSitemap();
 stampAssets();
 
-console.log(`\n✔ NextStopGuides build tamam / done — ${GUIDES.length} rehber / guides, ${liveItems.length} Amazon ürünü / packing items live\n`);
+console.log(`\n✔ NextStopGuides build tamam / done — ${GUIDES.length} rehber / guides, ${POSTS.length} blog yazısı / posts, ${liveItems.length} Amazon ürünü / packing items live\n`);
 written.forEach((f) => console.log('  ✎ ' + f));
 removed.forEach((f) => console.log('  🗑 ' + f + ' (katalogda yok / no longer in catalog)'));
 if (!liveItems.length) console.log('\n  ℹ packing-list: Amazon linki yok → sayfa noindex, sitemap dışında / no live Amazon links → noindex, not in sitemap');

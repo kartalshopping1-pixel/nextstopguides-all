@@ -3,5 +3,6 @@ User-agent: *
 Allow: /
 Disallow: /404.html
 Disallow: /tools/
+Disallow: /content/
 
 Sitemap: https://thenextstopguides.com/sitemap.xml

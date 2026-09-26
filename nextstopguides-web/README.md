@@ -30,6 +30,42 @@ Ek gelir: Airalo, Klook, Welcome Pickups, otel partneri ve Amazon ortaklık link
 
 ---
 
+## ✍️ Yeni blog yazısı nasıl eklenir? (4 adım)
+
+Blog (`/blog/`) hem Google'dan ziyaretçi getirir hem de partner programlarının (Travelpayouts vb.) istediği
+"özgün seyahat içeriği"dir. Her yazı = **1 kayıt + 1-2 metin dosyası**.
+
+1. **Metni yazın:** `content/blog/<slug>/` adında bir klasör açın (örn. `content/blog/tokyo-food-guide/`) ve içine
+   - `en.md` → İngilizce yazı (**zorunlu**)
+   - `tr.md` → Türkçe yazı (önerilir)
+   - `de.md`, `fr.md`, `es.md` → isteğe bağlı (yoksa bu dillerde İngilizce metin + "Bu yazı İngilizce" notu çıkar)
+
+   Mevcut bir yazının `.md` dosyasını açıp kopyalamak en kolayı. Yazım kuralları (Markdown):
+   - `## Başlık` ara başlık (3 veya daha fazla varsa üstte otomatik "Bu yazıda" içindekiler kutusu çıkar), `### Alt başlık`
+   - `- madde` liste, `1. madde` numaralı liste, `**kalın**`, `*italik*`
+   - `> **İpucu:** metin` → yeşil ipucu kutusu
+   - Paragraflar arasında **boş satır** bırakın.
+   - Linkler: `[metin](guide:japan-7-day-itinerary)` rehber sayfası · `[metin](packing:adapter)` bavul listesindeki ürün ·
+     `[metin](partner:airalo)` partner linki (`airalo`, `klook`, `hotels`, `welcomepickups` — config.js'ten gelir, otomatik `rel="sponsored"`) ·
+     `[metin](post:kyoto-in-2-days)` başka bir yazı · `[metin](page:guides/)` sitede bir sayfa · `[metin](https://...)` dış link.
+     Yanlış yazılmış bir link varsa build hangi dosyada olduğunu söyler.
+2. **Kaydı ekleyin:** `assets/data/posts.js` listesinin **en üstüne** bir kayıt kopyalayıp değiştirin: `slug` (klasör adıyla aynı),
+   `date` (`'2026-10-05'` gibi), `emoji` (kapak simgesi), `tags`, `guides` (yazının sonunda önerilecek rehberler) ve
+   `text` içinde **5 dilde** `title` + `description` (başlık ve 1-2 cümlelik özet; `node tools/check-i18n.js` eksikleri söyler).
+3. Terminalde:
+   ```bash
+   node tools/build-guides.js
+   node tools/check-i18n.js
+   ```
+   Yazının sayfası (`/blog/<slug>/`), blog listesi, ana sayfadaki "Blogdan" şeridi ve `sitemap.xml` güncellenir.
+4. GitHub'a gönderin (commit + push).
+
+**İyi yazı için:** gerçek ve kontrol edilebilir bilgi yazın; değişken fiyatları sabit rakam olarak vermeyin ("resmî siteyi kontrol edin" deyin),
+uydurma kişisel anı veya yorum kullanmayın, her yazıda ilgili rehber sayfasına ve uygun yerde bavul listesine/partnerlere link verin.
+Her yazının başında ortaklık bildirimi otomatik çıkar.
+
+---
+
 ## 1. Dosyalar ne işe yarıyor?
 
 ```
@@ -38,6 +74,7 @@ nextstopguides-web/
 ├── guides/index.html       → Tüm gezi planları    │ OTOMATİK ÜRETİLİR
 ├── guides/<slug>/index.html→ Her rehberin sayfası │ (node tools/build-guides.js)
 ├── packing-list/index.html → Bavul listesi (Amazon)│ Elle düzenlemeyin!
+├── blog/…/index.html       → Blog sayfaları       │
 ├── sitemap.xml, robots.txt → Google dosyaları     ┘
 ├── privacy.html            → Gizlilik + affiliate bildirimi (5 dil, elle düzenlenir)
 ├── 404.html                → "Sayfa bulunamadı" sayfası
@@ -45,13 +82,16 @@ nextstopguides-web/
 └── assets/
     ├── data/guides.js      → ⭐ REHBER KATALOĞU (her rehber = 1 kayıt)
     ├── data/packing.js     → ⭐ BAVUL LİSTESİ ürünleri + Amazon linkleri
+    ├── data/posts.js       → ⭐ BLOG YAZILARI listesi (başlık/özet, 5 dil)
     ├── js/config.js        → ⭐ Mağaza, partner, sosyal medya, iletişim linkleri
     ├── js/i18n.js          → ⭐ TÜM METİNLER, 5 dilde (İngilizce dahil)
     ├── js/catalog.js       → Kartlar, arama/filtre, rehber ve bavul sayfası (dokunmayın)
     ├── js/main.js          → Dil seçici, menü, SSS vb. (dokunmayın)
+    ├── js/blog.js          → Blog yazılarında dil değişimi (dokunmayın)
     ├── js/tw-config.js     → Marka renkleri (Tailwind)
     ├── css/styles.css      → Küçük ek tasarım ayarları
     └── img/README.md       → Hangi görselleri ekleyebileceğiniz
+content/blog/<slug>/      → ⭐ Blog yazılarının metinleri (en.md, tr.md …)
 tools/
     ├── build-guides.js     → Sayfaları üreten program (npm paketi gerektirmez)
     └── check-i18n.js       → Çeviri + katalog kontrolü
