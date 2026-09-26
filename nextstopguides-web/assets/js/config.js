@@ -35,7 +35,7 @@ window.NSG_CONFIG = {
     airaloCode:     "",                                 // (isteğe bağlı) indirim/tavsiye kodu; doluysa kartta "Kopyala" kutusu çıkar
     klook:          "https://klook.tpo.mx/L75DmiXc",    // Travelpayouts → Klook (Japonya sayfası)
     welcomepickups: "https://tpo.mx/4NHBkmvm",          // Travelpayouts → Welcome Pickups
-    hotels:         "BURAYA_OTEL_AFFILIATE_LINKI"       // Travelpayouts otel programı (belli olunca)
+    hotels:         "https://klook.tpo.mx/gMjopC2i"     // Klook otelleri (Travelpayouts, Sub ID: site-hotels)
   },
 
   /* ---- Partner adları ----------------------------------------------
@@ -43,7 +43,7 @@ window.NSG_CONFIG = {
      Otel partneriniz belli olunca adını yazın (örn. "Booking.com",
      "Hotellook", "Agoda"). Doldurulmazsa bu satır hiç görünmez.       */
   partners: {
-    hotelsProvider: "BURAYA_OTEL_PARTNERI_ADI",
+    hotelsProvider: "Klook",
     travelpayoutsMarker: "777810"
   },
 
