@@ -99,7 +99,26 @@ function priceOffer(price, url) {
   if (num.includes(',') && !num.includes('.')) num = num.replace(',', '.');
   num = num.replace(/,/g, '');
   if (!map[sym] || isNaN(parseFloat(num))) return null;
-  return { '@type': 'Offer', price: String(parseFloat(num)), priceCurrency: map[sym], availability: 'https://schema.org/InStock', url };
+  return {
+    '@type': 'Offer', price: String(parseFloat(num)), priceCurrency: map[sym], availability: 'https://schema.org/InStock', url,
+    shippingDetails: digitalDelivery(map[sym])
+  };
+}
+
+// The guides are PDF downloads: nothing ships, delivery is instant and free.
+// Google's merchant-listing check asks for shippingDetails on every offer.
+function digitalDelivery(currency) {
+  const country = currency === 'TRY' ? 'TR' : 'US';
+  return {
+    '@type': 'OfferShippingDetails',
+    shippingRate: { '@type': 'MonetaryAmount', value: '0', currency },
+    shippingDestination: { '@type': 'DefinedRegion', addressCountry: country },
+    deliveryTime: {
+      '@type': 'ShippingDeliveryTime',
+      handlingTime: { '@type': 'QuantitativeValue', minValue: 0, maxValue: 0, unitCode: 'DAY' },
+      transitTime: { '@type': 'QuantitativeValue', minValue: 0, maxValue: 0, unitCode: 'DAY' }
+    }
+  };
 }
 
 function productLD(g) {
