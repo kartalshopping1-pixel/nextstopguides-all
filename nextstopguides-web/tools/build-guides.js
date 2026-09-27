@@ -101,7 +101,17 @@ function priceOffer(price, url) {
   if (!map[sym] || isNaN(parseFloat(num))) return null;
   return {
     '@type': 'Offer', price: String(parseFloat(num)), priceCurrency: map[sym], availability: 'https://schema.org/InStock', url,
-    shippingDetails: digitalDelivery(map[sym])
+    shippingDetails: digitalDelivery(map[sym]),
+    hasMerchantReturnPolicy: noReturns(map[sym])
+  };
+}
+
+// Owner's policy: downloaded PDFs can't be returned; file problems are fixed on request.
+function noReturns(currency) {
+  return {
+    '@type': 'MerchantReturnPolicy',
+    applicableCountry: currency === 'TRY' ? 'TR' : 'US',
+    returnPolicyCategory: 'https://schema.org/MerchantReturnNotPermitted'
   };
 }
 
