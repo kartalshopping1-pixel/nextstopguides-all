@@ -36,7 +36,7 @@ window.NSG_CATALOG = {
       image: 'https://i.etsystatic.com/47032809/r/il/01e2fc/8567581068/il_340x270.8567581068_cgb9.jpg',
       etsy: 'https://www.etsy.com/listing/4581191988/japan-10-day-itinerary-pdf-tokyo-kyoto',
       shopier: 'https://www.shopier.com/NextStopGuides/51159845',
-      priceTRY: '₺329',
+      priceTRY: '',
       price: '',
       text: {
         en: {
@@ -106,7 +106,7 @@ window.NSG_CATALOG = {
       image: 'https://i.etsystatic.com/47032809/r/il/08a3b7/8615381315/il_340x270.8615381315_au91.jpg',
       etsy: 'https://www.etsy.com/listing/4581172515/japan-7-day-itinerary-pdf-tokyo-kyoto',
       shopier: 'https://www.shopier.com/NextStopGuides/51159606',
-      priceTRY: '₺279',
+      priceTRY: '',
       price: '',
       text: {
         en: {
@@ -176,7 +176,7 @@ window.NSG_CATALOG = {
       image: 'https://i.etsystatic.com/47032809/r/il/c32cd2/8615225565/il_340x270.8615225565_eec6.jpg',
       etsy: 'https://www.etsy.com/listing/4581163500/japan-5-day-itinerary-pdf-tokyo-kyoto',
       shopier: 'https://www.shopier.com/NextStopGuides/51159170',
-      priceTRY: '₺229',
+      priceTRY: '',
       price: '',
       text: {
         en: {
