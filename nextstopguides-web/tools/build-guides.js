@@ -148,8 +148,23 @@ function productLD(g) {
   if (etsyOffer) offers.push(etsyOffer);
   const shopierOffer = R.isUrl(g.shopier) ? priceOffer(g.priceTRY, g.shopier) : null;
   if (shopierOffer) offers.push(shopierOffer);
-  if (offers.length) p.offers = offers.length === 1 ? offers[0] : offers;
-  return p;
+  if (offers.length) {
+    p.offers = offers.length === 1 ? offers[0] : offers;
+    return p;
+  }
+  // Google treats a Product with no offers, reviews or rating as a critical
+  // error. While no price is shown on the site (owner's choice), describe the
+  // guide as a publication instead; it becomes a Product again once a price is set.
+  return {
+    '@type': 'CreativeWork',
+    name: p.name,
+    description: p.description,
+    image: p.image,
+    url: p.url,
+    genre: p.category,
+    inLanguage: 'en',
+    publisher: { '@type': 'Organization', name: 'NextStopGuides' }
+  };
 }
 
 function breadcrumbLD(items) {
