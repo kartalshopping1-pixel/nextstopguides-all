@@ -298,6 +298,13 @@ class AppStrings {
     'settings_aboutBody':
         'NextStop Trivia by NextStopGuides. Travel facts are for fun; always check official sources before your trip.',
     'settings_version': 'Version {version}',
+    'settings_site': 'NextStopGuides',
+    'settings_siteSubtitle': 'Travel guides & itineraries · thenextstopguides.com',
+    'promo_title': 'Plan a real trip',
+    'promo_body': 'Heading to Japan? Get our printable 5, 7 & 10-day itineraries',
+    'promo_cta': 'See the guides',
+    'promo_packingList': 'Free Japan packing list',
+    'link_openFailed': "Couldn't open the link.",
   };
 
   // Turkish ------------------------------------------------------------------
@@ -488,5 +495,12 @@ class AppStrings {
     'settings_aboutBody':
         'NextStopGuides tarafından NextStop Trivia. Seyahat bilgileri eğlence amaçlıdır; yolculuğundan önce resmi kaynakları kontrol et.',
     'settings_version': 'Sürüm {version}',
+    'settings_site': 'NextStopGuides',
+    'settings_siteSubtitle': 'Seyahat rehberleri ve gezi planları · thenextstopguides.com',
+    'promo_title': 'Gerçek bir gezi planla',
+    'promo_body': "Japonya'ya mı gidiyorsun? 5, 7 ve 10 günlük yazdırılabilir gezi planlarımıza göz at",
+    'promo_cta': 'Rehberleri gör',
+    'promo_packingList': 'Ücretsiz Japonya bavul listesi',
+    'link_openFailed': 'Bağlantı açılamadı.',
   };
 }

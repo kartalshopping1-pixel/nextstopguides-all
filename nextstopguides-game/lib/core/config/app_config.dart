@@ -6,6 +6,27 @@
 //
 // Build-time example:
 //   flutter run -d chrome --dart-define=ADS_ENABLED=true --dart-define=IAP_ENABLED=true
+//
+// All links to the NextStopGuides website also live here (see [SiteLink]).
+
+/// Pages on the NextStopGuides website that the game links to.
+enum SiteLink {
+  /// Site home page (Settings > NextStopGuides).
+  home('/', tracked: false),
+
+  /// Printable itineraries (promo card on Home / Results).
+  guides('/guides/'),
+
+  /// Free Japan packing list (secondary link on Results).
+  packingList('/packing-list/');
+
+  const SiteLink(this.path, {this.tracked = true});
+
+  final String path;
+
+  /// Whether the UTM campaign parameters are appended.
+  final bool tracked;
+}
 
 class AppConfig {
   const AppConfig({
@@ -15,7 +36,31 @@ class AppConfig {
     this.rewardedExtraLifeEnabled = true,
     this.interstitialEveryNGames = 3,
     this.showShop = true,
+    this.showGuidePromo = true,
   });
+
+  /// Base URL of the NextStopGuides website (no trailing slash).
+  static const String siteBaseUrl = 'https://thenextstopguides.com';
+
+  /// UTM parameters added to tracked [SiteLink]s.
+  static const Map<String, String> promoUtm = {
+    'utm_source': 'game',
+    'utm_medium': 'promo',
+    'utm_campaign': 'trivia',
+  };
+
+  /// Full URL of a website page in the player's language
+  /// (e.g. https://thenextstopguides.com/guides/?lang=tr&utm_source=game...).
+  static Uri siteUri(SiteLink link, String languageCode) {
+    final base = Uri.parse(siteBaseUrl);
+    return base.replace(
+      path: link.path,
+      queryParameters: {
+        'lang': languageCode,
+        if (link.tracked) ...promoUtm,
+      },
+    );
+  }
 
   /// The configuration used by the running app.
   static const AppConfig current = AppConfig(
@@ -42,4 +87,8 @@ class AppConfig {
 
   /// Show the Shop tab.
   final bool showShop;
+
+  /// Show the "Plan a real trip" promo card (Home + Results) linking to the
+  /// NextStopGuides travel guides. Plain web links only - no payments in-app.
+  final bool showGuidePromo;
 }

@@ -11,6 +11,7 @@ import 'features/profile/state/progress_controller.dart';
 import 'features/settings/state/settings_controller.dart';
 import 'services/ads/ads_service.dart';
 import 'services/analytics/analytics_service.dart';
+import 'services/links/link_service.dart';
 import 'services/purchase/purchase_service.dart';
 
 /// Root widget: exposes all services/controllers with `provider` and builds
@@ -29,6 +30,7 @@ class NextStopApp extends StatelessWidget {
         Provider<AdsService>.value(value: deps.ads),
         Provider<PurchaseService>.value(value: deps.purchases),
         Provider<AnalyticsService>.value(value: deps.analytics),
+        Provider<LinkService>.value(value: deps.links),
         Provider<TravelRepository>.value(value: deps.travelRepository),
         Provider<ProgressRepository>.value(value: deps.progressRepository),
         ChangeNotifierProvider<SettingsController>(

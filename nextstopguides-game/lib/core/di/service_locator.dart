@@ -9,6 +9,7 @@ import '../../domain/repositories/progress_repository.dart';
 import '../../domain/repositories/travel_repository.dart';
 import '../../services/ads/ads_service.dart';
 import '../../services/analytics/analytics_service.dart';
+import '../../services/links/link_service.dart';
 import '../../services/purchase/purchase_service.dart';
 import '../config/app_config.dart';
 
@@ -26,6 +27,7 @@ class AppDependencies {
     required this.ads,
     required this.purchases,
     required this.analytics,
+    this.links = const UrlLauncherLinkService(),
     required this.travelRepository,
     required this.progressRepository,
     required this.settingsRepository,
@@ -35,6 +37,7 @@ class AppDependencies {
   final AdsService ads;
   final PurchaseService purchases;
   final AnalyticsService analytics;
+  final LinkService links;
   final TravelRepository travelRepository;
   final ProgressRepository progressRepository;
   final SettingsRepository settingsRepository;

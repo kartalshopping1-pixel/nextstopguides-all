@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/config/app_config.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/l10n/strings.dart';
 import '../../../core/widgets/responsive_center.dart';
 import '../../../domain/entities/difficulty.dart';
 import '../../profile/state/progress_controller.dart';
+import '../../promo/state/site_link_opener.dart';
 import '../state/settings_controller.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -100,6 +102,15 @@ class SettingsScreen extends StatelessWidget {
                       '${s.t('settings_version', {'version': AppConstants.appVersion})}',
                     ),
                     isThreeLine: true,
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    key: const ValueKey('settings_site'),
+                    leading: const Icon(Icons.travel_explore),
+                    title: Text(s.t('settings_site')),
+                    subtitle: Text(s.t('settings_siteSubtitle')),
+                    trailing: const Icon(Icons.open_in_new, size: 20),
+                    onTap: () => openSiteLink(context, SiteLink.home),
                   ),
                 ],
               ),

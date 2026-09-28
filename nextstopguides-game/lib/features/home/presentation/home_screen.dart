@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/config/app_config.dart';
 import '../../../core/l10n/strings.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
@@ -10,6 +11,7 @@ import '../../../domain/entities/game_mode.dart';
 import '../../../domain/entities/player_progress.dart';
 import '../../game/presentation/game_screen.dart';
 import '../../profile/state/progress_controller.dart';
+import '../../promo/presentation/guide_promo_card.dart';
 import '../../settings/state/settings_controller.dart';
 import 'widgets/mode_card.dart';
 
@@ -32,6 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final progress = progressController.progress;
     final difficulty = _difficulty ?? settings.defaultDifficulty;
     final modes = GameMode.values.where((m) => m != GameMode.daily).toList();
+    final showPromo = context.read<AppConfig>().showGuidePromo;
 
     void play(GameMode mode) {
       Navigator.of(context).pushNamed(
@@ -109,6 +112,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
               ),
+              if (showPromo) ...[
+                const SizedBox(height: 20),
+                const GuidePromoCard(),
+              ],
             ],
           ),
         ),

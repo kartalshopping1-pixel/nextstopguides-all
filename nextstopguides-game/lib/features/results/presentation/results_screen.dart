@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../../../core/config/app_config.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/responsive_center.dart';
@@ -7,6 +9,7 @@ import '../../../domain/entities/game_mode.dart';
 import '../../../domain/entities/game_result.dart';
 import '../../../domain/entities/passport_stamp.dart';
 import '../../game/presentation/game_screen.dart';
+import '../../promo/presentation/guide_promo_card.dart';
 import '../../settings/state/settings_controller.dart';
 
 /// Arguments for the /results route.
@@ -33,6 +36,7 @@ class ResultsScreen extends StatelessWidget {
         : summary.accuracy >= 0.6
             ? '🎒'
             : '🧭';
+    final showPromo = context.read<AppConfig>().showGuidePromo;
 
     return Scaffold(
       appBar: AppBar(
@@ -155,6 +159,10 @@ class ResultsScreen extends StatelessWidget {
                 icon: const Icon(Icons.home_outlined),
                 label: Text(s.t('results_home')),
               ),
+              if (showPromo) ...[
+                const SizedBox(height: 24),
+                const GuidePromoCard(showPackingList: true),
+              ],
             ],
           ),
         ),

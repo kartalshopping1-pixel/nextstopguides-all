@@ -60,11 +60,13 @@ nextstopguides-game/
 │   │   ├── results/            ResultsScreen (score, XP, level up, stamps, hints)
 │   │   ├── profile/            "My Passport" screen, ProgressController (global progress state)
 │   │   ├── shop/               ShopScreen, ShopController (products, deliver purchases)
+│   │   ├── promo/              GuidePromoCard ("Plan a real trip", Home + Results), openSiteLink()
 │   │   └── settings/           SettingsScreen, SettingsController (+ context.strings extension)
 │   └── services/
 │       ├── ads/ads_service.dart               AdsService + NoopAdsService (AdMob guide in comments)
 │       ├── purchase/purchase_service.dart     PurchaseService + NoopPurchaseService, ProductIds
-│       └── analytics/analytics_service.dart   AnalyticsService + NoopAnalyticsService
+│       ├── analytics/analytics_service.dart   AnalyticsService + NoopAnalyticsService
+│       └── links/link_service.dart            LinkService + UrlLauncherLinkService (website links)
 ├── test/
 │   ├── domain/                 question generator, game session, scoring/levels/rewards, progress
 │   ├── data/                   validates the real JSON assets, progress JSON round trip
@@ -111,7 +113,8 @@ through `ProgressRepository`, optionally shows an interstitial, and the
 | Rewarded "extra life" | `GameController.watchAdForExtraLife()` (Survival) | hidden unless ads enabled & supported |
 | Products & purchases | `services/purchase/purchase_service.dart`, `features/shop/` | "coming soon" |
 | Purchase delivery | `ShopController.deliver()` | hints / remove ads implemented |
-| Analytics events | `game_start`, `game_complete`, `purchase`, `extra_life_rewarded` | no-op |
+| Website links (guides promo, packing list, site) | `AppConfig.siteUri(SiteLink, lang)` + `LinkService`; flag `showGuidePromo` | on |
+| Analytics events | `game_start`, `game_complete`, `purchase`, `extra_life_rewarded`, `site_link_open` | no-op |
 
 To go live, implement the interface (e.g. `AdMobAdsService`,
 `StorePurchaseService`), return it from `core/di/service_locator.dart`
