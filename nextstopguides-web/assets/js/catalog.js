@@ -299,17 +299,19 @@
     var g = data().guides.filter(function (x) { return x.slug === slug; })[0];
     if (!g) return;
     var tx = guideText(g, lang);
+    var setText = function (el, v) { if (el.textContent !== v) el.textContent = v; };
     Array.prototype.forEach.call(document.querySelectorAll('[data-guide-field]'), function (el) {
       var f = el.getAttribute('data-guide-field');
-      if (f === 'title') el.textContent = tx.title;
-      else if (f === 'description') el.textContent = tx.description;
-      else if (f === 'dest') el.textContent = destName(g, lang);
-      else if (f === 'days') el.textContent = t(lang, 'card.days', g.days);
-      else if (f === 'image-alt') el.setAttribute('alt', tx.title);
+      if (f === 'title') setText(el, tx.title);
+      else if (f === 'description') setText(el, tx.description);
+      else if (f === 'dest') setText(el, destName(g, lang));
+      else if (f === 'days') setText(el, t(lang, 'card.days', g.days));
+      else if (f === 'image-alt') { if (el.getAttribute('alt') !== tx.title) el.setAttribute('alt', tx.title); }
       else if (f === 'highlights') {
-        el.innerHTML = tx.highlights.map(function (h) {
+        var html = tx.highlights.map(function (h) {
           return '<li class="flex gap-3"><span class="mt-0.5 text-ocean-600" aria-hidden="true">✓</span><span>' + esc(h) + '</span></li>';
         }).join('');
+        if (el.innerHTML !== html) el.innerHTML = html;
       }
     });
     document.title = tx.title + ' — ' + t(lang, 'gp.titleSuffix');
@@ -323,7 +325,7 @@
   function renderMisc(lang) {
     Array.prototype.forEach.call(document.querySelectorAll('[data-guide-title]'), function (el) {
       var g = data().guides.filter(function (x) { return x.slug === el.getAttribute('data-guide-title'); })[0];
-      if (g) el.textContent = guideText(g, lang).title;
+      if (g && el.textContent !== guideText(g, lang).title) el.textContent = guideText(g, lang).title;
     });
     var pk = document.querySelector('[data-packing]');
     if (pk) pk.innerHTML = packingHTML(lang);

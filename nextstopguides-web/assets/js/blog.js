@@ -32,9 +32,8 @@
       var p = DATA[el.getAttribute('data-post-slug')];
       if (!p) return;
       var f = el.getAttribute('data-post-field');
-      if (f === 'title') el.textContent = pick(p.t, lang);
-      else if (f === 'description') el.textContent = pick(p.d, lang);
-      else if (f === 'date') el.textContent = fmtDate(p.date, lang);
+      var v = f === 'title' ? pick(p.t, lang) : f === 'description' ? pick(p.d, lang) : f === 'date' ? fmtDate(p.date, lang) : null;
+      if (v !== null && el.textContent !== v) el.textContent = v; // no needless repaint (LCP)
     });
 
     var slug = document.body.getAttribute('data-post');
@@ -42,7 +41,8 @@
 
     var tpl = document.querySelector('template[data-post-lang="' + lang + '"]');
     var translated = lang === 'en' || !!tpl;
-    body.innerHTML = tpl ? tpl.innerHTML : enBody;
+    var nextBody = tpl ? tpl.innerHTML : enBody;
+    if (body.innerHTML !== nextBody) body.innerHTML = nextBody;
     body.setAttribute('lang', tpl ? lang : 'en');
     var note = document.querySelector('[data-post-en-note]');
     if (note) note.hidden = translated;

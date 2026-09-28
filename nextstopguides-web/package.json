@@ -1,0 +1,12 @@
+{
+  "name": "nextstopguides-web",
+  "private": true,
+  "description": "NextStopGuides static site. Build: npm install (once), then npm run build (= node tools/build-guides.js).",
+  "scripts": {
+    "build": "node tools/build-guides.js",
+    "check": "node tools/check-i18n.js"
+  },
+  "devDependencies": {
+    "tailwindcss": "3.4.17"
+  }
+}

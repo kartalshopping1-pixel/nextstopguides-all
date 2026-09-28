@@ -224,15 +224,17 @@ ${ogAlt}
   <meta name="twitter:image" content="${esc(img.url)}">
 
   <link rel="icon" href="${o.base}favicon.svg" type="image/svg+xml">
-${hasFile('assets/img/apple-touch-icon.png') ? `  <link rel="apple-touch-icon" href="${o.base}assets/img/apple-touch-icon.png">\n` : ''}  <link rel="manifest" href="${o.base}site.webmanifest">
+  <link rel="icon" href="${o.base}assets/img/favicon.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="${o.base}assets/img/apple-touch-icon.png">
+  <link rel="manifest" href="${o.base}site.webmanifest">
 
-  <link rel="preconnect" href="https://cdn.tailwindcss.com">
   <link rel="preconnect" href="https://i.etsystatic.com">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="${o.base}assets/js/tw-config.js"></script>
+  <!-- Fonts load without blocking the first paint (display=swap); compiled Tailwind + site styles -->
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"></noscript>
+  <link rel="stylesheet" href="${o.base}assets/css/tailwind.css">
   <link rel="stylesheet" href="${o.base}assets/css/styles.css">
 
   ${jsonLd(o.ld)}
@@ -273,7 +275,7 @@ ${desk}
 
       <div class="flex items-center gap-2">
         <div class="relative" data-lang-switcher>
-          <button id="lang-btn" type="button" class="inline-flex items-center gap-1.5 rounded-full border border-ink/15 px-3 py-1.5 text-xs font-bold tracking-wide text-ink transition hover:border-ocean-600 hover:text-ocean-700" aria-haspopup="menu" aria-expanded="false" aria-controls="lang-menu" aria-label="Change language: English">
+          <button id="lang-btn" type="button" class="inline-flex items-center gap-1.5 rounded-full border border-ink/15 px-3 py-1.5 text-xs font-bold tracking-wide text-ink transition hover:border-ocean-600 hover:text-ocean-700" aria-haspopup="menu" aria-expanded="false" aria-controls="lang-menu" aria-label="EN – Change language: English">
             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z"/></svg>
             <span data-lang-current>EN</span>
             <svg class="h-3 w-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"/></svg>
@@ -422,7 +424,7 @@ function buildIndex() {
   const faqN = [1, 2, 3, 4, 5, 6];
   const sameAs = [CFG.shops.etsy, CFG.shops.shopier].concat(Object.values(CFG.social || {})).filter(R.isUrl);
   const ld = [
-    Object.assign({ '@type': 'Organization', '@id': SITE + '/#organization', name: 'NextStopGuides', url: SITE + '/', logo: abs('favicon.svg'),
+    Object.assign({ '@type': 'Organization', '@id': SITE + '/#organization', name: 'NextStopGuides', url: SITE + '/', logo: abs('assets/img/icon-512.png'),
       description: plain(T('footer.tagline')) }, sameAs.length ? { sameAs } : {}),
     { '@type': 'WebSite', '@id': SITE + '/#website', name: 'NextStopGuides', url: SITE + '/', inLanguage: LANGS, publisher: { '@id': SITE + '/#organization' } },
     { '@type': 'ItemList', name: 'NextStopGuides printable travel itineraries',
@@ -501,16 +503,16 @@ function buildIndex() {
         <!-- Decorative postcards. City photos: CC0 from Wikimedia Commons (credits in privacy.html) -->
         <div class="relative mx-auto h-[360px] w-full max-w-[420px] sm:h-[420px]" aria-hidden="true">
           <div class="float absolute left-0 top-6 w-[62%] rounded-3xl bg-white p-3 shadow-xl" style="--r:-6deg">
-            <img src="assets/img/city-tokyo.jpg" alt="" width="960" height="723" fetchpriority="high" class="h-40 w-full rounded-2xl object-cover sm:h-48">
+            <img src="assets/img/city-tokyo.jpg" srcset="assets/img/city-tokyo-480.jpg 480w, assets/img/city-tokyo.jpg 960w" sizes="(min-width: 640px) 250px, 62vw" alt="" width="960" height="723" fetchpriority="high" class="h-40 w-full rounded-2xl object-cover sm:h-48">
             ${tx('p', 'hero.c1', 'class="px-1 pt-3 font-display text-sm font-bold"')}
             ${tx('p', 'hero.c1meta', 'class="px-1 text-xs text-ink-soft"')}
           </div>
           <div class="float float-delay absolute right-0 top-0 w-[52%] rounded-3xl bg-white p-3 shadow-xl" style="--r:5deg">
-            <img src="assets/img/city-kyoto.jpg" alt="" width="960" height="622" class="h-32 w-full rounded-2xl object-cover sm:h-36">
+            <img src="assets/img/city-kyoto.jpg" srcset="assets/img/city-kyoto-480.jpg 480w, assets/img/city-kyoto.jpg 960w" sizes="(min-width: 640px) 210px, 52vw" alt="" width="960" height="622" class="h-32 w-full rounded-2xl object-cover sm:h-36">
             ${tx('p', 'hero.c2', 'class="px-1 pt-3 font-display text-sm font-bold"')}
           </div>
           <div class="float absolute bottom-0 right-6 w-[58%] rounded-3xl bg-white p-3 shadow-xl" style="--r:3deg">
-            <img src="assets/img/city-osaka.jpg" alt="" width="960" height="640" class="h-32 w-full rounded-2xl object-cover sm:h-36">
+            <img src="assets/img/city-osaka.jpg" srcset="assets/img/city-osaka-480.jpg 480w, assets/img/city-osaka.jpg 960w" sizes="(min-width: 640px) 230px, 58vw" alt="" width="960" height="640" class="h-32 w-full rounded-2xl object-cover sm:h-36">
             ${tx('p', 'hero.c3', 'class="px-1 pt-3 font-display text-sm font-bold"')}
           </div>
           <div class="absolute bottom-10 left-2 flex items-center gap-2 rounded-2xl bg-ink px-4 py-3 text-white shadow-xl">
@@ -1072,7 +1074,7 @@ function buildPost(p) {
     { '@type': 'BlogPosting', headline: en.title, description: en.description, datePublished: p.date, dateModified: p.date,
       inLanguage: 'en', url, mainEntityOfPage: url, image: [image.url], keywords: (p.tags || []).join(', '),
       author: { '@type': 'Organization', name: 'NextStopGuides', url: SITE + '/' },
-      publisher: { '@type': 'Organization', name: 'NextStopGuides', logo: { '@type': 'ImageObject', url: abs('favicon.svg') } } },
+      publisher: { '@type': 'Organization', name: 'NextStopGuides', logo: { '@type': 'ImageObject', url: abs('assets/img/icon-512.png') } } },
     breadcrumbLD([[plain(T('nav.home')), SITE + '/'], [plain(T('nav.blog')), abs('blog/')], [en.title, url]])
   ];
   const others = POSTS_SORTED.filter((x) => x.slug !== p.slug).slice(0, 3);
@@ -1193,6 +1195,26 @@ function cleanStale() {
   return removed;
 }
 
+/* ---------- compiled Tailwind CSS ----------
+   Scans every generated page + assets/js (see tailwind.config.js) and writes a
+   minified assets/css/tailwind.css. Needs "npm install" once (Tailwind v3 CLI). */
+function buildCss() {
+  const cli = path.join(ROOT, 'node_modules', 'tailwindcss', 'lib', 'cli.js');
+  const out = 'assets/css/tailwind.css';
+  if (!fs.existsSync(cli)) {
+    const msg = 'Tailwind CLI bulunamadı / not found → klasörde bir kez "npm install" çalıştırın.';
+    if (!exists(out)) fail(msg + ' (assets/css/tailwind.css yok / missing)');
+    console.warn('\n⚠ ' + msg + '\n  Mevcut assets/css/tailwind.css kullanıldı / existing CSS kept (yeni sınıflar eklenmemiş olabilir).');
+    return;
+  }
+  const { execFileSync } = require('child_process');
+  try {
+    execFileSync(process.execPath, [cli, '-c', 'tailwind.config.js', '-i', 'tools/tailwind.input.css', '-o', out, '--minify'],
+      { cwd: ROOT, stdio: ['ignore', 'ignore', 'pipe'] });
+  } catch (e) { fail('Tailwind CSS derlenemedi / build failed:\n' + (e.stderr ? e.stderr.toString() : e.message)); }
+  written.push(out);
+}
+
 /* ---------- cache busting ----------
    The domain's browser cache keeps JS/CSS for hours, so a returning visitor
    could mix fresh HTML with stale scripts. Every local .js/.css reference in
@@ -1224,6 +1246,7 @@ GUIDES.forEach(buildGuidePage);
 buildPacking();
 buildBlog();
 buildSitemap();
+buildCss();
 stampAssets();
 
 console.log(`\n✔ NextStopGuides build tamam / done — ${GUIDES.length} rehber / guides, ${POSTS.length} blog yazısı / posts, ${liveItems.length} Amazon ürünü / packing items live\n`);

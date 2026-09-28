@@ -5,9 +5,9 @@ Aşağıdaki dosyaları eklediğinizde site daha profesyonel görünür. Dosya a
 
 | Dosya adı | Boyut | Ne için? | Öncelik |
 |---|---|---|---|
-| `og-image.jpg` | 1200 × 630 px | WhatsApp, Instagram, Facebook, X'te link paylaşınca çıkan önizleme görseli. Logo + "Printable Travel Itineraries" yazısı + bir Japonya fotoğrafı ideal. Eklenmezse ilk rehberin Etsy görseli kullanılır. | Orta |
-| `apple-touch-icon.png` | 180 × 180 px | iPhone'da "Ana ekrana ekle" ikonu. `favicon.svg`'nin PNG hali olabilir. | Orta |
-| `icon-512.png` | 512 × 512 px | (İsteğe bağlı) Android ikonu. Eklerseniz `site.webmanifest` içine de ekleyin. | Düşük |
+| `og-image.jpg` | 1200 × 630 px | ✅ Var. Link paylaşınca çıkan önizleme görseli (değiştirmek isterseniz aynı ad ve boyutla kaydedin). | — |
+| `apple-touch-icon.png` | 180 × 180 px | ✅ Var. iPhone "Ana ekrana ekle" ikonu. | — |
+| `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `favicon.png` | çeşitli | ✅ Var. Android/uygulama ikonları ve PNG favicon. | — |
 
 ## İpuçları
 - Görselleri ücretsiz hazırlamak için: **Canva** (hazır "Open Graph / Facebook Post" şablonları var).

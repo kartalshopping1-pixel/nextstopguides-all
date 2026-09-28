@@ -17,7 +17,7 @@ Ek gelir: Airalo, Klook, Welcome Pickups, otel partneri ve Amazon ortaklık link
    - `days`, `cities`, `image` (Etsy ürün görselinin linki), `etsy` (Etsy ürün linki)
    - `shopier` + `priceTRY` (Türkçe baskı varsa; yoksa `''` bırakın → buton gizlenir)
    - `text.en` → başlık, kısa açıklama, öne çıkanlar (**zorunlu**). `tr`, `de`, `fr`, `es` isteğe bağlı (yoksa İngilizce görünür).
-2. Klasörde terminal açın (klasörün adres çubuğuna `cmd` yazıp Enter) ve çalıştırın:
+2. Klasörde terminal açın (klasörün adres çubuğuna `cmd` yazıp Enter). İlk seferde bir kez `npm install` çalıştırın, sonra:
    ```bash
    node tools/build-guides.js
    ```
@@ -25,7 +25,7 @@ Ek gelir: Airalo, Klook, Welcome Pickups, otel partneri ve Amazon ortaklık link
    (İsterseniz kontrol: `node tools/check-i18n.js` → "OK" yazmalı.)
 3. Değişiklikleri **GitHub'a gönderin (commit + push)**. Cloudflare Pages birkaç dakika içinde siteyi günceller.
 
-> Node.js yoksa: https://nodejs.org → "LTS" sürümünü kurun (bir kerelik).
+> Node.js yoksa: https://nodejs.org → "LTS" sürümünü kurun (bir kerelik), ardından klasörde bir kez `npm install`.
 > Hata mesajı çıkarsa genelde bir virgül, tırnak veya parantez eksiktir — mesaj hangi rehberde olduğunu söyler.
 
 ---
@@ -88,11 +88,15 @@ nextstopguides-web/
     ├── js/catalog.js       → Kartlar, arama/filtre, rehber ve bavul sayfası (dokunmayın)
     ├── js/main.js          → Dil seçici, menü, SSS vb. (dokunmayın)
     ├── js/blog.js          → Blog yazılarında dil değişimi (dokunmayın)
-    ├── js/tw-config.js     → Marka renkleri (Tailwind)
+    ├── css/tailwind.css    → Derlenmiş tasarım dosyası (OTOMATİK üretilir)
     ├── css/styles.css      → Küçük ek tasarım ayarları
     └── img/README.md       → Hangi görselleri ekleyebileceğiniz
 content/blog/<slug>/      → ⭐ Blog yazılarının metinleri (en.md, tr.md …)
+tailwind.config.js        → Marka renkleri ve yazı tipleri (Tailwind ayarı)
+package.json              → "npm install" ile kurulan araçlar (Tailwind)
+_headers                  → Cloudflare önbellek ayarları
 tools/
+    ├── tailwind.input.css  → Tailwind kaynak dosyası
     ├── build-guides.js     → Sayfaları üreten program (npm paketi gerektirmez)
     └── check-i18n.js       → Çeviri + katalog kontrolü
 ```
@@ -194,24 +198,24 @@ Affiliate linklere site otomatik `rel="sponsored"` ekler (Google kuralı). Bildi
 
 ---
 
-## 9. İleride: Tailwind CDN yerine derlenmiş CSS (isteğe bağlı, daha hızlı)
+## 9. Tasarım dosyası (derlenmiş Tailwind CSS)
 
-Tasarım şu an **Tailwind Play CDN** ile çalışıyor (tarayıcı konsolunda "production" uyarısı görülebilir; site yine çalışır).
+Site artık internetten Tailwind CDN'i yüklemiyor; tüm tasarım sınıfları tek bir küçük, sıkıştırılmış dosyada:
+`assets/css/tailwind.css`. Bu dosyayı `node tools/build-guides.js` **otomatik** üretir (sayfalardaki ve
+`assets/js/*.js` içindeki sınıfları tarar). Böylece sayfalar daha hızlı açılır ve konsolda uyarı çıkmaz.
 
-```bash
-npm init -y
-npm install -D tailwindcss@3
-npx tailwindcss init
-```
-`tailwind.config.js`: `content: ["./*.html", "./guides/**/*.html", "./packing-list/*.html", "./assets/js/*.js", "./tools/build-guides.js"]`
-ve `theme` olarak `assets/js/tw-config.js`'teki `theme` bölümü. `assets/css/tailwind-input.css` içine
-`@tailwind base; @tailwind components; @tailwind utilities;` yazın ve üretin:
-```bash
-npx tailwindcss -i ./assets/css/tailwind-input.css -o ./assets/css/tailwind.css --minify
-```
-Sonra `tools/build-guides.js` içindeki `head()` fonksiyonunda CDN ve `tw-config.js` satırlarını
-`<link rel="stylesheet" href="${o.base}assets/css/tailwind.css">` ile değiştirin (privacy.html'de de) ve build'i çalıştırın.
-(Komutlar **Tailwind v3** içindir.)
+- **Bir kerelik kurulum:** klasörde `npm install` (Node.js gerekir). Bu, `node_modules/` klasörüne Tailwind v3'ü kurar
+  (bu klasör GitHub'a gönderilmez, `.gitignore`'da).
+- Kurulum yapılmamışsa build çalışmaya devam eder, mevcut `tailwind.css`'i kullanır ve bir uyarı yazar.
+- Renkler/yazı tipleri: `tailwind.config.js` (eski `assets/js/tw-config.js` yerine).
+- Kaynak dosya: `tools/tailwind.input.css`. Üretilen `assets/css/tailwind.css` GitHub'a **gönderilmelidir**
+  (Cloudflare'de build adımı yok).
+- `_headers`: Cloudflare Pages önbellek ayarları (CSS/JS bir yıl — dosya değişince `?v=` adresi de değişir; görseller bir hafta).
+
+**Paylaşım görselleri ve ikonlar** (`assets/img/`): `og-image.jpg` (1200×630, sosyal medya önizlemesi),
+`apple-touch-icon.png` (180×180), `favicon.png` (32×32), `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`
+(telefonda "ana ekrana ekle" için; `site.webmanifest`'te tanımlı). Ana sayfa şehir fotoğraflarının yanında
+telefonlar için küçük `*-480.jpg` sürümleri var; fotoğrafı değiştirirseniz ikisini de değiştirin.
 
 ---
 

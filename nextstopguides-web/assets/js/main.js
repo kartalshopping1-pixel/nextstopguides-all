@@ -128,7 +128,10 @@
       if (!originals.has(el)) originals.set(el, el.innerHTML);
       var t = str(el.getAttribute('data-i18n'));
       if (t !== undefined && el.hasAttribute('data-n')) t = String(t).replace(/\{n\}/g, el.getAttribute('data-n'));
-      el.innerHTML = t !== undefined ? t : originals.get(el);
+      var next = t !== undefined ? t : originals.get(el);
+      // Only touch the DOM when the text really changes: rewriting identical text
+      // repaints the page after scripts load and delays Largest Contentful Paint.
+      if (el.innerHTML !== next) el.innerHTML = next;
     });
 
     // data-i18n-attr="placeholder:nl.placeholder;aria-label:t.stars"
@@ -140,7 +143,8 @@
         if (parts.length !== 2) return;
         var attr = parts[0].trim(), t = str(parts[1].trim());
         if (!(attr in store)) store[attr] = el.getAttribute(attr) || '';
-        el.setAttribute(attr, t !== undefined ? t : store[attr]);
+        var nextAttr = t !== undefined ? t : store[attr];
+        if (el.getAttribute(attr) !== nextAttr) el.setAttribute(attr, nextAttr);
       });
     });
 
@@ -209,7 +213,7 @@
         b.type = 'button';
         b.setAttribute('data-lang', code);
         b.setAttribute('lang', code);
-        b.setAttribute('aria-label', I18N.languages[code]);
+        b.setAttribute('aria-label', code.toUpperCase() + ' – ' + I18N.languages[code]);
         b.className = 'lang-pill rounded-full border border-ink/15 px-2 py-2 text-xs font-bold tracking-wide text-ink transition hover:border-ocean-600';
         b.textContent = code.toUpperCase();
         langMobile.appendChild(b);
@@ -219,7 +223,8 @@
 
   function updateLangControls() {
     $all('[data-lang-current]').forEach(function (el) { el.textContent = currentLang.toUpperCase(); });
-    if (langBtn) langBtn.setAttribute('aria-label', msg('langLabel') + ': ' + (I18N.languages[currentLang] || currentLang));
+    // Accessible name starts with the visible text (EN, TR …) — WCAG "label in name"
+    if (langBtn) langBtn.setAttribute('aria-label', currentLang.toUpperCase() + ' – ' + msg('langLabel') + ': ' + (I18N.languages[currentLang] || currentLang));
     $all('[data-lang]').forEach(function (b) {
       var on = b.getAttribute('data-lang') === currentLang;
       if (b.getAttribute('role') === 'menuitemradio') b.setAttribute('aria-checked', String(on));

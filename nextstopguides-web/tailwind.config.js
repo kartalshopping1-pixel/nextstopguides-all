@@ -1,5 +1,18 @@
-/* Tailwind Play CDN theme — brand colors & fonts (loaded right after the CDN script, not deferred). */
-tailwind.config = {
+/* Tailwind CSS v3 config — compiled by tools/build-guides.js into assets/css/tailwind.css.
+   Brand colors & fonts (formerly assets/js/tw-config.js for the Play CDN).
+   "content" lists every file that contains Tailwind class names, including
+   classes built inside JavaScript strings (catalog.js, blog.js, main.js). */
+module.exports = {
+  content: [
+    './index.html',
+    './privacy.html',
+    './404.html',
+    './guides/**/*.html',
+    './blog/**/*.html',
+    './packing-list/**/*.html',
+    './assets/js/**/*.js',
+    './tools/build-guides.js'
+  ],
   theme: {
     extend: {
       colors: {
@@ -13,5 +26,6 @@ tailwind.config = {
         display: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif']
       }
     }
-  }
+  },
+  plugins: []
 };

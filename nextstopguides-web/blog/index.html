@@ -23,9 +23,9 @@
   <meta property="og:title" content="Japan Travel Blog — Practical Tips &amp; Guides | NextStopGuides">
   <meta property="og:description" content="Practical Japan travel advice: where to stay, how to get around, what to pack, when to go and what to eat — written to help you plan a smoother trip.">
   <meta property="og:url" content="https://thenextstopguides.com/blog/">
-  <meta property="og:image" content="https://i.etsystatic.com/47032809/r/il/01e2fc/8567581068/il_1200x1200.8567581068_cgb9.jpg">
+  <meta property="og:image" content="https://thenextstopguides.com/assets/img/og-image.jpg">
   <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="1200">
+  <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="Japan Travel Blog — Practical Tips &amp; Guides | NextStopGuides">
   <meta property="og:locale" content="en_US">
   <meta property="og:locale:alternate" content="tr_TR">
@@ -35,18 +35,20 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Japan Travel Blog — Practical Tips &amp; Guides | NextStopGuides">
   <meta name="twitter:description" content="Practical Japan travel advice: where to stay, how to get around, what to pack, when to go and what to eat — written to help you plan a smoother trip.">
-  <meta name="twitter:image" content="https://i.etsystatic.com/47032809/r/il/01e2fc/8567581068/il_1200x1200.8567581068_cgb9.jpg">
+  <meta name="twitter:image" content="https://thenextstopguides.com/assets/img/og-image.jpg">
 
   <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="../assets/img/favicon.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="../assets/img/apple-touch-icon.png">
   <link rel="manifest" href="../site.webmanifest">
 
-  <link rel="preconnect" href="https://cdn.tailwindcss.com">
   <link rel="preconnect" href="https://i.etsystatic.com">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="../assets/js/tw-config.js?v=cc76c19c"></script>
+  <!-- Fonts load without blocking the first paint (display=swap); compiled Tailwind + site styles -->
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"></noscript>
+  <link rel="stylesheet" href="../assets/css/tailwind.css?v=20bc4183">
   <link rel="stylesheet" href="../assets/css/styles.css?v=0df39daf">
 
   <script type="application/ld+json">
@@ -136,9 +138,9 @@
   <script src="../assets/js/config.js?v=dcea29d7" defer></script>
   <script src="../assets/js/i18n.js?v=57261a29" defer></script>
   <script src="../assets/data/guides.js?v=7ddbf302" defer></script>
-  <script src="../assets/js/catalog.js?v=23019f9c" defer></script>
-  <script src="../assets/js/blog.js?v=126a3414" defer></script>
-  <script src="../assets/js/main.js?v=0086e9f4" defer></script>
+  <script src="../assets/js/catalog.js?v=c8477285" defer></script>
+  <script src="../assets/js/blog.js?v=ba81b665" defer></script>
+  <script src="../assets/js/main.js?v=6bfcd4bc" defer></script>
 </head>
 
 <body class="bg-sand-50 font-sans text-ink antialiased">
@@ -161,7 +163,7 @@
 
       <div class="flex items-center gap-2">
         <div class="relative" data-lang-switcher>
-          <button id="lang-btn" type="button" class="inline-flex items-center gap-1.5 rounded-full border border-ink/15 px-3 py-1.5 text-xs font-bold tracking-wide text-ink transition hover:border-ocean-600 hover:text-ocean-700" aria-haspopup="menu" aria-expanded="false" aria-controls="lang-menu" aria-label="Change language: English">
+          <button id="lang-btn" type="button" class="inline-flex items-center gap-1.5 rounded-full border border-ink/15 px-3 py-1.5 text-xs font-bold tracking-wide text-ink transition hover:border-ocean-600 hover:text-ocean-700" aria-haspopup="menu" aria-expanded="false" aria-controls="lang-menu" aria-label="EN – Change language: English">
             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z"/></svg>
             <span data-lang-current>EN</span>
             <svg class="h-3 w-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"/></svg>
