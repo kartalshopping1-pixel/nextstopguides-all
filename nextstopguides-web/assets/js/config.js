@@ -49,7 +49,7 @@ window.NSG_CONFIG = {
 
   /* ---- Sosyal medya ------------------------------------------------ */
   social: {
-    instagram: "BURAYA_INSTAGRAM_LINKI",
+    instagram: "https://www.instagram.com/thenextstopguides/",
     tiktok:    "BURAYA_TIKTOK_LINKI",
     youtube:   "BURAYA_YOUTUBE_LINKI",
     pinterest: "BURAYA_PINTEREST_LINKI"
