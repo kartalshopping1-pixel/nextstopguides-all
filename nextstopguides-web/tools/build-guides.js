@@ -204,6 +204,7 @@ function head(o) {
   <title>${esc(plain(o.title))}</title>
   <meta name="description" content="${esc(plain(o.desc))}">
   <meta name="theme-color" content="#15625e">
+  <meta name="impact-site-verification" value="ef3808ec-9e25-4aec-aa78-e2daae4e3e4a">
   <meta name="robots" content="${o.noindex ? 'noindex, follow' : 'index, follow'}">
   <link rel="canonical" href="${o.url}">
 ${hreflang}
