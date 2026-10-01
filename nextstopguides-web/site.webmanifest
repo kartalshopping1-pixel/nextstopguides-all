@@ -1,7 +1,7 @@
 {
   "name": "NextStopGuides",
   "short_name": "NextStop",
-  "description": "Ready-to-follow printable travel itineraries with verified hotels, restaurants and booking links. Now featuring Japan.",
+  "description": "Ready-to-follow printable travel itineraries with verified hotels, restaurants and booking links for Japan, Thailand, Paris, Georgia, Dubai and Egypt.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

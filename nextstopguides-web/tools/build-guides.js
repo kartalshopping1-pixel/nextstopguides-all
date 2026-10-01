@@ -66,8 +66,12 @@ function fail(msg) { console.error('\n✖ ' + msg + '\n'); process.exit(1); }
     if (!CAT.destinations[g.destination] && !g.destinationName) fail(`${where}: '${g.destination}' destinations listesinde yok. Listeye ekleyin ya da destinationName: { en: '...' } yazın.`);
     const en = g.text && g.text.en;
     if (!en || !en.title || !en.description) fail(`${where}: text.en.title ve text.en.description zorunlu / required.`);
-    if (!R.isUrl(g.etsy)) fail(`${where}: etsy linki https:// ile başlamalı / etsy must be a full URL.`);
-    if (!R.isUrl(g.image)) fail(`${where}: image linki https:// ile başlamalı / image must be a full URL.`);
+    // etsy may be '' while the Etsy listing doesn't exist yet: the guide page then links to the Etsy shop.
+    if (!R.isPlaceholder(g.etsy) && !R.isUrl(g.etsy)) fail(`${where}: etsy linki https:// ile başlamalı (ya da '' bırakın) / etsy must be a full URL or ''.`);
+    if (R.isLocalImage(g.image)) {
+      if (!exists(g.image)) fail(`${where}: image dosyası bulunamadı / image file not found: ${g.image}`);
+      if (!exists(R.smallImage(g.image))) fail(`${where}: küçük görsel eksik / small image missing: ${R.smallImage(g.image)}`);
+    } else if (!R.isUrl(g.image)) fail(`${where}: image https:// linki ya da assets/img/guides/<slug>.jpg olmalı / image must be a full URL or a local assets/ path.`);
   });
 })();
 
@@ -83,9 +87,17 @@ function tx(tag, key, attrs) { return `<${tag}${attrs ? ' ' + attrs : ''} data-i
 const abs = (p) => SITE + '/' + p.replace(/^\/+/, '');
 const guideUrl = (g) => abs(`guides/${g.slug}/`);
 const hasFile = (f) => exists(f);
+/* Social/structured-data image for a guide: absolute URL + size.
+   Local covers (assets/img/guides/<slug>.jpg) are 1200×900; Etsy images get the 1200×1200 variant. */
+function guideSocialImage(g) {
+  if (R.isLocalImage(g.image)) return { url: abs(g.image), w: 1200, h: 900 };
+  const social = R.socialImage(g.image);
+  return social !== g.image ? { url: social, w: 1200, h: 1200 } : { url: g.image };
+}
+const guideLargeImage = (g) => (R.isLocalImage(g.image) ? abs(g.image) : R.largeImage(g.image));
 const DEFAULT_OG = hasFile('assets/img/og-image.jpg')
   ? { url: abs('assets/img/og-image.jpg'), w: 1200, h: 630 }
-  : { url: R.socialImage(GUIDES[0].image), w: 1200, h: 1200 };
+  : guideSocialImage(GUIDES[0]);
 const liveItems = R.liveItems();
 const getPath = (obj, p) => p.split('.').reduce((o, k) => (o && o[k] !== undefined ? o[k] : undefined), obj);
 
@@ -137,7 +149,7 @@ function productLD(g) {
     '@type': 'Product',
     name: en.title,
     description: en.description,
-    image: [R.largeImage(g.image)],
+    image: [guideLargeImage(g)],
     url: guideUrl(g),
     sku: g.slug,
     category: 'Printable travel itinerary (PDF)',
@@ -487,7 +499,7 @@ function buildIndex() {
       <div class="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-20 pt-14 sm:px-6 md:pt-20 lg:grid-cols-2 lg:pb-28">
         <div>
           <p class="inline-flex items-center gap-2 rounded-full bg-ocean-100 px-3 py-1 text-xs font-semibold text-ocean-800">
-            <span aria-hidden="true">🗾</span> ${tx('span', 'hero.badge')}
+            <span aria-hidden="true">🌍</span> ${tx('span', 'hero.badge')}
           </p>
           ${tx('h1', 'hero.title', 'class="mt-5 font-display text-4xl font-extrabold leading-[1.1] tracking-tight text-ink sm:text-5xl lg:text-6xl"')}
           ${tx('p', 'hero.subtitle', 'class="mt-5 max-w-xl text-lg leading-relaxed text-ink-soft"')}
@@ -740,9 +752,14 @@ function buildGuidePage(g) {
   const url = guideUrl(g);
   const en = R.guideText(g, 'en');
   const price = R.isPlaceholder(g.price) ? '' : g.price;
-  const img = R.largeImage(g.image);
-  const social = R.socialImage(g.image);
-  const etsyKey = price ? 'card.buyEtsy' : 'card.viewEtsy';
+  const local = R.isLocalImage(g.image);
+  const img = local ? base + g.image : R.largeImage(g.image);
+  const imgAttrs = local
+    ? `srcset="${esc(base + R.smallImage(g.image))} 480w, ${esc(base + g.image)} 1200w" sizes="(min-width: 1024px) 560px, 100vw" width="1200" height="900"`
+    : 'width="794" height="794"';
+  // No Etsy listing yet (etsy: '') → link to the Etsy shop instead; no shop URL either → no button.
+  const etsyHref = R.isUrl(g.etsy) ? g.etsy : (R.isUrl(CFG.shops && CFG.shops.etsy) ? CFG.shops.etsy : '');
+  const etsyKey = !R.isUrl(g.etsy) ? 'guides.etsyshop' : (price ? 'card.buyEtsy' : 'card.viewEtsy');
   const ld = [
     productLD(g),
     breadcrumbLD([[plain(T('nav.home')), SITE + '/'], [plain(T('nav.guides')), abs('guides/')], [en.title, url]])
@@ -755,7 +772,7 @@ function buildGuidePage(g) {
 
   const html = head({
     base, url, title: `${en.title} — ${T('gp.titleSuffix')}`, desc: en.description, ld, ogType: 'product',
-    image: social !== g.image ? { url: social, w: 1200, h: 1200 } : { url: g.image }, imageAlt: en.title,
+    image: guideSocialImage(g), imageAlt: en.title,
     titleKey: 'none', descKey: 'none'
   }) + `
 
@@ -768,7 +785,7 @@ function buildGuidePage(g) {
 
     <section class="mx-auto grid max-w-6xl gap-10 px-4 pb-16 pt-8 sm:px-6 lg:grid-cols-2 lg:items-start">
       <div class="overflow-hidden rounded-3xl bg-sand-100 shadow-xl ring-1 ring-ink/5">
-        <img src="${esc(img)}" alt="${esc(en.title)}" data-guide-field="image-alt" width="794" height="794" fetchpriority="high" class="h-auto w-full">
+        <img src="${esc(img)}" ${imgAttrs} alt="${esc(en.title)}" data-guide-field="image-alt" fetchpriority="high" class="h-auto w-full">
       </div>
       <div>
         <div class="flex flex-wrap items-center gap-2 text-xs font-semibold">
@@ -779,8 +796,8 @@ function buildGuidePage(g) {
         <p class="mt-4 text-lg leading-relaxed text-ink-soft" data-guide-field="description">${esc(en.description)}</p>
         <p class="mt-5 text-sm text-ink-soft">${tx('span', 'gp.cities', 'class="font-semibold text-ink"')} ${esc((g.cities || []).join(' · '))}</p>
 ${price ? `        <p class="mt-6 font-display text-4xl font-extrabold">${esc(price)}</p>\n` : ''}        <div class="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <a href="${esc(g.etsy)}" target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2 rounded-full bg-coral-600 sm:whitespace-nowrap px-8 py-4 text-base font-semibold text-white shadow-lg shadow-coral-600/25 transition hover:-translate-y-0.5 hover:bg-coral-700">${tx('span', etsyKey)} <span aria-hidden="true">↗</span></a>
-${R.isUrl(g.shopier) ? `          <a href="${esc(g.shopier)}" target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2 rounded-full border-2 border-ocean-700 sm:whitespace-nowrap px-7 py-3.5 text-base font-semibold text-ocean-700 transition hover:bg-ocean-700 hover:text-white">${tx('span', 'card.shopier')}${R.isPlaceholder(g.priceTRY) ? '' : ' <span class="whitespace-nowrap">· ' + esc(g.priceTRY) + '</span>'} <span aria-hidden="true">↗</span></a>\n` : ''}        </div>
+${etsyHref ? `          <a href="${esc(etsyHref)}" target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2 rounded-full bg-coral-600 sm:whitespace-nowrap px-8 py-4 text-base font-semibold text-white shadow-lg shadow-coral-600/25 transition hover:-translate-y-0.5 hover:bg-coral-700">${tx('span', etsyKey)} <span aria-hidden="true">↗</span></a>
+` : ''}${R.isUrl(g.shopier) ? `          <a href="${esc(g.shopier)}" target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2 rounded-full border-2 border-ocean-700 sm:whitespace-nowrap px-7 py-3.5 text-base font-semibold text-ocean-700 transition hover:bg-ocean-700 hover:text-white">${tx('span', 'card.shopier')}${R.isPlaceholder(g.priceTRY) ? '' : ' <span class="whitespace-nowrap">· ' + esc(g.priceTRY) + '</span>'} <span aria-hidden="true">↗</span></a>\n` : ''}        </div>
         ${tx('p', 'gp.edition', 'class="mt-4 text-xs text-ink-soft"')}
       </div>
     </section>
@@ -1070,7 +1087,7 @@ function buildPost(p) {
     bodies[l] = renderMarkdown(read(`content/blog/${p.slug}/${l}.md`), l, base, `content/blog/${p.slug}/${l}.md`);
   });
   const guide = GUIDES.find((g) => g.slug === (p.guides || [])[0]) || GUIDES[0];
-  const image = { url: R.socialImage(guide.image), w: 1200, h: 1200 };
+  const image = guideSocialImage(guide);
   const ld = [
     { '@type': 'BlogPosting', headline: en.title, description: en.description, datePublished: p.date, dateModified: p.date,
       inLanguage: 'en', url, mainEntityOfPage: url, image: [image.url], keywords: (p.tags || []).join(', '),

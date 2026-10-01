@@ -65,6 +65,13 @@
   function largeImage(url) { return String(url || '').replace(/\/il_\d+x\d+\./, '/il_794xN.'); }
   function socialImage(url) { return String(url || '').replace(/\/il_\d+x\d+\./, '/il_1200x1200.'); }
 
+  /* Local cover images live in the site itself, e.g. image: 'assets/img/guides/<slug>.jpg'
+     (1200 px wide) with a phone-sized '<slug>-480.jpg' next to it. Paths are relative to
+     the site root, so pages prefix them with their base ('', '../', '../../'). */
+  function isLocalImage(v) { return typeof v === 'string' && !isUrl(v) && /^[a-z0-9_\-\/.]+\.(jpe?g|png|webp)$/i.test(v.trim()); }
+  function imageSrc(url, base) { return isLocalImage(url) ? (base || '') + url : url; }
+  function smallImage(url) { return String(url).replace(/(\.[a-z]+)$/i, '-480$1'); }
+
   function guideHref(base, slug) { return base + 'guides/' + slug + '/'; }
 
   function requestHref(base) {
@@ -91,7 +98,11 @@
     var h = '';
     h += '<article class="card-lift relative flex flex-col overflow-hidden rounded-3xl border border-ink/10 bg-white" data-slug="' + esc(g.slug) + '">';
     h += '<div class="aspect-[4/3] overflow-hidden bg-sand-100">';
-    h += '<img src="' + esc(g.image) + '" alt="' + esc(tx.title) + '" width="340" height="270" loading="lazy" decoding="async" class="h-full w-full object-cover">';
+    if (isLocalImage(g.image)) {
+      h += '<img src="' + esc(imageSrc(smallImage(g.image), base)) + '" srcset="' + esc(imageSrc(smallImage(g.image), base)) + ' 480w, ' + esc(imageSrc(g.image, base)) + ' 1200w" sizes="(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw" alt="' + esc(tx.title) + '" width="480" height="360" loading="lazy" decoding="async" class="h-full w-full object-cover">';
+    } else {
+      h += '<img src="' + esc(g.image) + '" alt="' + esc(tx.title) + '" width="340" height="270" loading="lazy" decoding="async" class="h-full w-full object-cover">';
+    }
     h += '</div>';
     h += '<div class="flex flex-1 flex-col p-5 sm:p-6">';
     h += '<div class="flex flex-wrap items-center gap-2 text-xs font-semibold">';
@@ -208,6 +219,7 @@
     isPlaceholder: isPlaceholder, isUrl: isUrl, esc: esc, t: t,
     guideText: guideText, destName: destName, regionOf: regionOf, regionName: regionName,
     largeImage: largeImage, socialImage: socialImage, guideHref: guideHref,
+    isLocalImage: isLocalImage, imageSrc: imageSrc, smallImage: smallImage,
     sortGuides: sortGuides, cardHTML: cardHTML, soonCardHTML: soonCardHTML,
     relatedFor: relatedFor, liveItems: liveItems, itemLinks: itemLinks, packingHTML: packingHTML
   };
