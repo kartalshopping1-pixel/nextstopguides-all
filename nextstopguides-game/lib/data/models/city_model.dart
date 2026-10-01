@@ -3,6 +3,7 @@ import '../../domain/entities/city.dart';
 import 'json_helpers.dart';
 
 /// JSON <-> City mapping. Field names match assets/data/cities.json.
+/// Turkish fields: `cityTr`, `countryTr`, `landmarksTr`, `funFactTr`.
 class CityModel {
   CityModel._();
 
@@ -18,16 +19,24 @@ class CityModel {
       landmarks: readStringList(json['landmarks']),
       funFact: readString(json['funFact']),
       tier: readInt(json['tier'], 2),
+      nameTr: readString(json['cityTr']),
+      countryNameTr: readString(json['countryTr']),
+      landmarksTr: readStringList(json['landmarksTr']),
+      funFactTr: readString(json['funFactTr']),
     );
   }
 
   static Map<String, dynamic> toJson(City city) => {
         'id': city.id,
         'city': city.name,
+        'cityTr': city.nameTr,
         'countryCode': city.countryCode,
         'country': city.countryName,
+        'countryTr': city.countryNameTr,
         'landmarks': city.landmarks,
+        'landmarksTr': city.landmarksTr,
         'funFact': city.funFact,
+        'funFactTr': city.funFactTr,
         'tier': city.tier,
       };
 }

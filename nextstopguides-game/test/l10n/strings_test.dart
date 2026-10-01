@@ -42,6 +42,33 @@ void main() {
     expect(tr.t('game_question', {'current': 3, 'total': 10}), 'Soru 3/10');
   });
 
+  test('Turkish question templates never put a suffix on {subject}', () {
+    final tr = AppStrings.tableFor(AppLanguage.tr);
+    for (final type in QuestionType.values) {
+      final template = tr['q_${type.name}']!;
+      expect(RegExp(r"\{subject\}[^\s?.,!]").hasMatch(template), isFalse,
+          reason: template);
+    }
+    const s = AppStrings(AppLanguage.tr);
+    const q = Question(
+      id: 'capitalOfCountry:EG',
+      type: QuestionType.capitalOfCountry,
+      subject: 'Mısır',
+      options: ['Kahire'],
+      correctIndex: 0,
+    );
+    expect(s.prompt(q), 'Mısır ülkesinin başkenti neresidir?');
+  });
+
+  test('population clues are localized', () {
+    const tr = AppStrings(AppLanguage.tr);
+    const en = AppStrings(AppLanguage.en);
+    const clue = Clue(ClueType.population, '50M-100M');
+    expect(tr.clueValue(clue), '50-100 milyon');
+    expect(en.clueValue(clue), '50M-100M');
+    expect(tr.clueValue(const Clue(ClueType.continent, 'africa')), 'Afrika');
+  });
+
   test('unknown language codes fall back to English', () {
     expect(AppLanguage.fromCode('xx'), AppLanguage.en);
     expect(AppLanguage.fromCode('tr'), AppLanguage.tr);

@@ -15,6 +15,11 @@ import '../entities/question.dart';
 /// Pure Dart: no Flutter imports, so it is easy to unit test
 /// (see test/domain/question_generator_test.dart).
 ///
+/// Language: every text in a question (subject, options, clues, fun fact)
+/// uses [languageCode] ('en' or 'tr'), falling back to English when a
+/// translation is missing. Which subjects are picked never depends on the
+/// language, so the Daily Challenge is the same for every player.
+///
 /// Repeat avoidance works on two levels:
 /// 1. inside one game a question id is never used twice while fresh ones exist;
 /// 2. ids passed in `recentlySeen` (remembered from earlier games) are skipped
@@ -25,6 +30,7 @@ class QuestionGenerator {
     required List<City> cities,
     Random? random,
     Iterable<String> recentlySeen = const [],
+    this.languageCode = 'en',
   })  : _countries = List.unmodifiable(countries),
         _cities = List.unmodifiable(cities),
         _random = random ?? Random(),
@@ -32,18 +38,23 @@ class QuestionGenerator {
         _countryByCode = {for (final c in countries) c.code: c};
 
   /// Deterministic generator for the Daily Challenge: same date -> same
-  /// questions for every player on every platform.
+  /// questions for every player on every platform (and in every language).
   factory QuestionGenerator.daily({
     required List<Country> countries,
     required List<City> cities,
     required DateTime date,
+    String languageCode = 'en',
   }) {
     return QuestionGenerator(
       countries: countries,
       cities: cities,
       random: SeededRandom(DayKey.seedOf(date)),
+      languageCode: languageCode,
     );
   }
+
+  /// Language of the generated texts: 'en' or 'tr'.
+  final String languageCode;
 
   final List<Country> _countries;
   final List<City> _cities;
@@ -124,28 +135,33 @@ class QuestionGenerator {
     };
   }
 
-  /// Progressive clues for a country, hardest first. Any clue that would
-  /// reveal the name (e.g. "Singapore dollar") is masked.
+  /// Progressive clues for a country, hardest first, in [languageCode].
+  /// Any clue that would reveal the name (e.g. "Singapore dollar" /
+  /// "Singapur doları") is masked: "••• dollar" / "••• doları".
   List<Clue> buildClues(Country country) {
-    String hide(String value) => TextUtils.mask(value, country.name);
-    final safeLandmarks =
-        country.landmarks.where((l) => !TextUtils.leaks(l, country.name)).toList();
+    final lang = languageCode;
+    final secrets = [country.nameIn(lang), ...country.aliasesIn(lang)];
+    String hide(String value) => TextUtils.maskAll(value, secrets);
+    bool safe(String value) => !secrets.any((s) => TextUtils.leaks(value, s));
+    final languages = country.languagesIn(lang);
+    final currency = country.currencyIn(lang);
+    final landmarks = country.landmarksIn(lang);
+    final safeLandmarks = landmarks.where(safe).toList();
     return [
       Clue(ClueType.continent, country.continent.name),
       if (country.population.isNotEmpty)
         Clue(ClueType.population, country.population),
-      if (country.languages.isNotEmpty)
-        Clue(ClueType.language, hide(country.languages.join(', '))),
-      if (country.currency.isNotEmpty)
-        Clue(ClueType.currency, hide(country.currency)),
+      if (languages.isNotEmpty)
+        Clue(ClueType.language, hide(languages.join(', '))),
+      if (currency.isNotEmpty) Clue(ClueType.currency, hide(currency)),
       if (safeLandmarks.isNotEmpty)
         Clue(
           ClueType.landmark,
           safeLandmarks[_random.nextInt(safeLandmarks.length)],
         )
-      else if (country.landmarks.isNotEmpty)
-        Clue(ClueType.landmark, hide(country.landmarks.first)),
-      Clue(ClueType.capital, hide(country.capital)),
+      else if (landmarks.isNotEmpty)
+        Clue(ClueType.landmark, hide(landmarks.first)),
+      Clue(ClueType.capital, hide(country.capitalIn(lang))),
       Clue(ClueType.flag, country.flag),
     ];
   }
@@ -162,9 +178,8 @@ class QuestionGenerator {
       return null;
     }
     final built = _buildOptions(
-      country.name,
-      _distractorCountries(country, d, sameContinentFirst: true)
-          .map((c) => c.name),
+      _name(country),
+      _distractorCountries(country, d, sameContinentFirst: true).map(_name),
       d.clueOptionCount,
     );
     return Question(
@@ -175,61 +190,57 @@ class QuestionGenerator {
       correctIndex: built.correctIndex,
       clues: buildClues(country),
       continent: country.continent,
-      funFact: country.funFact,
+      funFact: country.funFactIn(languageCode),
       displayEmoji: '🧭',
     );
   }
 
   Question? _capitalOfCountry(Difficulty d) {
     const type = QuestionType.capitalOfCountry;
-    final candidates = _countryPool(d)
-        .where((c) => c.capital.isNotEmpty && !TextUtils.related(c.capital, c.name))
-        .toList();
+    final candidates = _countryPool(d).where(_capitalIsSafe).toList();
     final country = _pickFresh(candidates, (c) => questionId(type, c.code));
     if (country == null) {
       return null;
     }
     final built = _buildOptions(
-      country.capital,
+      _capital(country),
       _distractorCountries(country, d, sameContinentFirst: d.preferSameContinent)
-          .map((c) => c.capital),
+          .map(_capital),
       d.optionCount,
     );
     return Question(
       id: questionId(type, country.code),
       type: type,
-      subject: country.name,
+      subject: _name(country),
       options: built.options,
       correctIndex: built.correctIndex,
       continent: country.continent,
-      funFact: country.funFact,
+      funFact: country.funFactIn(languageCode),
       displayEmoji: country.flag,
     );
   }
 
   Question? _countryOfCapital(Difficulty d) {
     const type = QuestionType.countryOfCapital;
-    final candidates = _countryPool(d)
-        .where((c) => c.capital.isNotEmpty && !TextUtils.related(c.capital, c.name))
-        .toList();
+    final candidates = _countryPool(d).where(_capitalIsSafe).toList();
     final country = _pickFresh(candidates, (c) => questionId(type, c.code));
     if (country == null) {
       return null;
     }
     final built = _buildOptions(
-      country.name,
+      _name(country),
       _distractorCountries(country, d, sameContinentFirst: d.preferSameContinent)
-          .map((c) => c.name),
+          .map(_name),
       d.optionCount,
     );
     return Question(
       id: questionId(type, country.code),
       type: type,
-      subject: country.capital,
+      subject: _capital(country),
       options: built.options,
       correctIndex: built.correctIndex,
       continent: country.continent,
-      funFact: country.funFact,
+      funFact: country.funFactIn(languageCode),
       displayEmoji: '🏛️',
     );
   }
@@ -243,9 +254,9 @@ class QuestionGenerator {
       return null;
     }
     final built = _buildOptions(
-      country.name,
+      _name(country),
       _distractorCountries(country, d, sameContinentFirst: d.preferSameContinent)
-          .map((c) => c.name),
+          .map(_name),
       d.optionCount,
     );
     return Question(
@@ -255,26 +266,29 @@ class QuestionGenerator {
       options: built.options,
       correctIndex: built.correctIndex,
       continent: country.continent,
-      funFact: country.funFact,
+      funFact: country.funFactIn(languageCode),
       displayEmoji: country.flag,
     );
   }
 
   Question? _cityFromLandmark(Difficulty d) {
     const type = QuestionType.cityFromLandmark;
+    // A usable landmark must exist in English (keeps the pool the same in
+    // every language) and in the current language (the one shown).
     final candidates = _cityPool(d)
-        .where((c) => c.landmarks.any((l) => !TextUtils.leaks(l, c.name)))
+        .where((c) =>
+            _safeLandmarks(c, 'en').isNotEmpty &&
+            _safeLandmarks(c, languageCode).isNotEmpty)
         .toList();
     final city = _pickFresh(candidates, (c) => questionId(type, c.id));
     if (city == null) {
       return null;
     }
-    final usable =
-        city.landmarks.where((l) => !TextUtils.leaks(l, city.name)).toList();
+    final usable = _safeLandmarks(city, languageCode);
     final landmark = usable[_random.nextInt(usable.length)];
     final built = _buildOptions(
-      city.name,
-      _distractorCities(city, d).map((c) => c.name),
+      _cityName(city),
+      _distractorCities(city, d).map(_cityName),
       d.optionCount,
     );
     return Question(
@@ -284,7 +298,7 @@ class QuestionGenerator {
       options: built.options,
       correctIndex: built.correctIndex,
       continent: _countryByCode[city.countryCode]?.continent,
-      funFact: city.funFact,
+      funFact: city.funFactIn(languageCode),
       displayEmoji: '📍',
     );
   }
@@ -292,7 +306,9 @@ class QuestionGenerator {
   Question? _countryOfCity(Difficulty d) {
     const type = QuestionType.countryOfCity;
     final candidates = _cityPool(d)
-        .where((c) => !TextUtils.related(c.name, c.countryName))
+        .where((c) =>
+            !TextUtils.related(c.name, c.countryName) &&
+            !TextUtils.related(_cityName(c), _countryNameOfCity(c)))
         .toList();
     final city = _pickFresh(candidates, (c) => questionId(type, c.id));
     if (city == null) {
@@ -302,19 +318,20 @@ class QuestionGenerator {
     final distractors = country != null
         ? _distractorCountries(country, d,
                 sameContinentFirst: d.preferSameContinent)
-            .map((c) => c.name)
+            .map(_name)
         : ([..._countries]..shuffle(_random))
             .where((c) => c.code != city.countryCode)
-            .map((c) => c.name);
-    final built = _buildOptions(city.countryName, distractors, d.optionCount);
+            .map(_name);
+    final built =
+        _buildOptions(_countryNameOfCity(city), distractors, d.optionCount);
     return Question(
       id: questionId(type, city.id),
       type: type,
-      subject: city.name,
+      subject: _cityName(city),
       options: built.options,
       correctIndex: built.correctIndex,
       continent: country?.continent,
-      funFact: city.funFact,
+      funFact: city.funFactIn(languageCode),
       displayEmoji: '🏙️',
     );
   }
@@ -322,6 +339,35 @@ class QuestionGenerator {
   // ---------------------------------------------------------------------------
   // Helpers
   // ---------------------------------------------------------------------------
+
+  String _name(Country c) => c.nameIn(languageCode);
+
+  String _capital(Country c) => c.capitalIn(languageCode);
+
+  String _cityName(City c) => c.nameIn(languageCode);
+
+  /// Country name of [city], taken from the country list when possible so it
+  /// always matches the option texts.
+  String _countryNameOfCity(City city) =>
+      _countryByCode[city.countryCode]?.nameIn(languageCode) ??
+      city.countryNameIn(languageCode);
+
+  /// Capital questions skip countries whose capital gives the name away
+  /// (e.g. Singapore, Kuwait City / Kuveyt) in English or in the current
+  /// language, so the pool is the same in every language.
+  bool _capitalIsSafe(Country c) =>
+      c.capital.isNotEmpty &&
+      !TextUtils.related(c.capital, c.name) &&
+      !TextUtils.related(_capital(c), _name(c));
+
+  /// Landmarks of [city] in [lang] that do not contain the city's name.
+  List<String> _safeLandmarks(City city, String lang) {
+    final name = city.nameIn(lang);
+    return city
+        .landmarksIn(lang)
+        .where((l) => !TextUtils.leaks(l, name))
+        .toList();
+  }
 
   List<Country> _countryPool(Difficulty d) =>
       _countries.where((c) => c.tier <= d.maxTier).toList();
@@ -413,5 +459,6 @@ class QuestionGenerator {
     );
   }
 
-  static String _normalize(String value) => value.trim().toLowerCase();
+  /// Turkish-aware, case-insensitive key used to keep options unique.
+  static String _normalize(String value) => TextUtils.fold(value.trim());
 }

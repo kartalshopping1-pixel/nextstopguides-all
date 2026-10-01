@@ -45,6 +45,7 @@ class GameScreen extends StatelessWidget {
         ads: context.read<AdsService>(),
         analytics: context.read<AnalyticsService>(),
         config: context.read<AppConfig>(),
+        languageCode: context.read<SettingsController>().language.code,
       )..start(),
       child: const _GameView(),
     );

@@ -24,6 +24,7 @@ class GameController extends ChangeNotifier {
     required AdsService ads,
     required AnalyticsService analytics,
     required AppConfig config,
+    this.languageCode = 'en',
     DateTime Function()? clock,
   })  : difficulty = mode.usesFixedDifficulty ? Difficulty.medium : difficulty,
         _travel = travelRepository,
@@ -35,6 +36,9 @@ class GameController extends ChangeNotifier {
 
   final GameMode mode;
   final Difficulty difficulty;
+
+  /// Language of the question texts ('en' or 'tr').
+  final String languageCode;
   final TravelRepository _travel;
   final ProgressController _progress;
   final AdsService _ads;
@@ -65,11 +69,13 @@ class GameController extends ChangeNotifier {
               countries: countries,
               cities: cities,
               date: _clock(),
+              languageCode: languageCode,
             )
           : QuestionGenerator(
               countries: countries,
               cities: cities,
               recentlySeen: _progress.progress.recentQuestionIds,
+              languageCode: languageCode,
             );
       _session = GameSession(
         mode: mode,

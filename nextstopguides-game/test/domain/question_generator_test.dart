@@ -3,6 +3,7 @@ import 'package:nextstopguides_game/core/utils/seeded_random.dart';
 import 'package:nextstopguides_game/core/utils/text_utils.dart';
 import 'package:nextstopguides_game/domain/engine/question_generator.dart';
 import 'package:nextstopguides_game/domain/entities/continent.dart';
+import 'package:nextstopguides_game/domain/entities/country.dart';
 import 'package:nextstopguides_game/domain/entities/difficulty.dart';
 import 'package:nextstopguides_game/domain/entities/game_mode.dart';
 import 'package:nextstopguides_game/domain/entities/question.dart';
@@ -195,6 +196,161 @@ void main() {
       final gen = generator();
       final q = gen.generate(QuestionType.cityFromLandmark, Difficulty.easy)!;
       expect(q.continent, isA<Continent>());
+    });
+  });
+
+  group('QuestionGenerator in Turkish', () {
+    QuestionGenerator trGenerator({int seed = 42}) => QuestionGenerator(
+          countries: testCountries,
+          cities: testCities,
+          random: SeededRandom(seed),
+          languageCode: 'tr',
+        );
+
+    // English names that differ from their Turkish versions ("Egypt", ...).
+    final englishOnly = {
+      for (final c in testCountries) c.name,
+      for (final c in testCountries) c.capital,
+      for (final c in testCities) c.name,
+    }.difference({
+      for (final c in testCountries) c.nameTr,
+      for (final c in testCountries) c.capitalTr,
+      for (final c in testCities) c.nameTr,
+    })
+      ..remove('Only Leaky'); // has no Turkish name: English fallback
+
+    test('no English names appear in Turkish questions', () {
+      for (final mode in GameMode.values) {
+        for (final difficulty in Difficulty.values) {
+          final gen = trGenerator(seed: mode.index * 10 + difficulty.index + 1);
+          for (var i = 0; i < 20; i++) {
+            final q = gen.next(mode, difficulty);
+            expectValid(q);
+            final texts = [q.subject, ...q.options, ...q.clues.map((c) => c.value)];
+            for (final text in texts) {
+              expect(englishOnly.contains(text), isFalse,
+                  reason: '${q.id}: "$text" is English');
+            }
+          }
+        }
+      }
+    });
+
+    test('capital questions use Turkish country and capital names', () {
+      final gen = trGenerator();
+      for (var i = 0; i < 30; i++) {
+        final q = gen.generate(QuestionType.capitalOfCountry, Difficulty.hard)!;
+        final country = testCountries.firstWhere((c) => c.nameTr == q.subject);
+        expect(q.correctAnswer, country.capitalTr);
+        // Same skip rule as English (Singapore, Mexico City).
+        expect(q.subject, isNot(anyOf('Singapur', 'Meksika')));
+        expect(q.funFact, contains('hakkında'));
+      }
+    });
+
+    test('flag and country-of-capital answers are Turkish country names', () {
+      final gen = trGenerator();
+      final trNames = testCountries.map((c) => c.nameTr).toSet();
+      for (var i = 0; i < 30; i++) {
+        final flag = gen.generate(QuestionType.flagToCountry, Difficulty.medium)!;
+        expect(trNames, containsAll(flag.options));
+        final cap = gen.generate(QuestionType.countryOfCapital, Difficulty.hard)!;
+        expect(trNames, containsAll(cap.options));
+      }
+    });
+
+    test('Turkish clues mask the answer, including İ/ı spellings and aliases', () {
+      final gen = trGenerator();
+      String clue(String code, ClueType type) => gen
+          .buildClues(testCountries.firstWhere((c) => c.code == code))
+          .firstWhere((c) => c.type == type)
+          .value;
+
+      expect(clue('SG', ClueType.currency), '${TextUtils.maskToken} doları');
+      expect(clue('EG', ClueType.currency), '${TextUtils.maskToken} lirası');
+      expect(clue('US', ClueType.currency), '${TextUtils.maskToken} doları');
+      expect(clue('IT', ClueType.language), '${TextUtils.maskToken}nca');
+      // "İTALYA Kulesi" leaks the name, so the other landmark is used.
+      expect(clue('IT', ClueType.landmark), 'Kolezyum');
+      expect(clue('CN', ClueType.landmark), 'Yasak Şehir');
+      expect(clue('SG', ClueType.capital), TextUtils.maskToken);
+
+      for (final c in testCountries) {
+        for (final cl in gen.buildClues(c).where((cl) => cl.type != ClueType.flag)) {
+          expect(TextUtils.leaks(cl.value, c.nameTr), isFalse,
+              reason: '${c.nameTr}: ${cl.type.name} = ${cl.value}');
+        }
+      }
+    });
+
+    test('Turkish landmark questions never contain the city name', () {
+      final gen = trGenerator();
+      for (var i = 0; i < 40; i++) {
+        final q = gen.generate(QuestionType.cityFromLandmark, Difficulty.hard)!;
+        expect(TextUtils.leaks(q.subject, q.correctAnswer), isFalse);
+        expect(q.subject, isNot('Roma Forumu'));
+        expect(q.correctAnswer, isNot('Only Leaky'));
+      }
+    });
+
+    test('Turkish country-of-city answers use the Turkish country name', () {
+      final gen = trGenerator();
+      for (var i = 0; i < 40; i++) {
+        final q = gen.generate(QuestionType.countryOfCity, Difficulty.hard)!;
+        expect(q.subject, isNot(anyOf('Singapur', 'Meksiko')));
+        final city = testCities.firstWhere((c) => c.nameIn('tr') == q.subject);
+        final country = testCountries.firstWhere((c) => c.code == city.countryCode);
+        expect(q.correctAnswer, country.nameTr);
+      }
+    });
+
+    test('missing Turkish fields fall back to English', () {
+      const plain = Country(
+        code: 'XX',
+        name: 'Plainland',
+        capital: 'Plain City',
+        continent: Continent.europe,
+        flag: '🏳️',
+        currency: 'Plain coin',
+        languages: ['Plainish'],
+        population: '<1M',
+        landmarks: ['Plain Rock'],
+        funFact: 'Plain fact.',
+      );
+      expect(plain.nameIn('tr'), 'Plainland');
+      expect(plain.capitalIn('tr'), 'Plain City');
+      expect(plain.currencyIn('tr'), 'Plain coin');
+      expect(plain.landmarksIn('tr'), ['Plain Rock']);
+      expect(plain.funFactIn('tr'), 'Plain fact.');
+      final leaky = testCities.firstWhere((c) => c.name == 'Only Leaky');
+      expect(leaky.nameIn('tr'), 'Only Leaky');
+    });
+
+    test('the Daily Challenge picks the same subjects in every language', () {
+      final date = DateTime(2026, 10, 1);
+      List<String> ids(String lang) => QuestionGenerator.daily(
+            countries: testCountries,
+            cities: testCities,
+            date: date,
+            languageCode: lang,
+          ).generateSet(GameMode.daily, Difficulty.medium, 10).map((q) => q.id).toList();
+      expect(ids('tr'), ids('en'));
+    });
+  });
+
+  group('TextUtils (Turkish-aware)', () {
+    test('fold treats I, İ, ı and i alike and keeps the length', () {
+      expect(TextUtils.fold('IRAK ırak İzmir'), 'irak irak izmir');
+      expect(TextUtils.fold('İstanbul').length, 'İstanbul'.length);
+    });
+
+    test('mask and leaks work across Turkish case pairs', () {
+      expect(TextUtils.mask('Irak dinarı', 'IRAK'), '${TextUtils.maskToken} dinarı');
+      expect(TextUtils.mask('İTALYA ve italya', 'İtalya'),
+          '${TextUtils.maskToken} ve ${TextUtils.maskToken}');
+      expect(TextUtils.leaks('ŞİLİ pesosu', 'Şili'), isTrue);
+      expect(TextUtils.mask('Singapore dollar', 'singapore'),
+          '${TextUtils.maskToken} dollar');
     });
   });
 

@@ -6,8 +6,13 @@
 //   3. Return it from AppStrings._table.
 // test/l10n/strings_test.dart checks that every language has every key.
 //
-// Note: travel data (country names, landmarks, fun facts) comes from the JSON
-// files and is currently English only.
+// Note: travel data (country names, capitals, landmarks, fun facts) comes from
+// the JSON files, which carry English fields plus Turkish `...Tr` fields. The
+// QuestionGenerator picks the right one via its `languageCode`.
+//
+// Turkish question templates must never attach a suffix directly to
+// {subject} (no "{subject}'nin"): vowel harmony would break for names like
+// "Mısır" or "Peru". test/l10n/strings_test.dart checks this.
 
 import '../../domain/engine/level_system.dart';
 import '../../domain/entities/continent.dart';
@@ -81,7 +86,8 @@ class AppStrings {
 
   String clueLabel(ClueType type) => t('clue_${type.name}');
 
-  /// Clue value ready for display (continents are localized).
+  /// Clue value ready for display (continents and population brackets are
+  /// localized; other clues already come in the game language).
   String clueValue(Clue clue) {
     if (clue.type == ClueType.continent) {
       for (final c in Continent.values) {
@@ -90,8 +96,22 @@ class AppStrings {
         }
       }
     }
+    if (clue.type == ClueType.population) {
+      final key = _populationKeys[clue.value];
+      if (key != null) {
+        return t(key);
+      }
+    }
     return clue.value;
   }
+
+  static const Map<String, String> _populationKeys = {
+    '<1M': 'pop_under1M',
+    '1M-10M': 'pop_1M_10M',
+    '10M-50M': 'pop_10M_50M',
+    '50M-100M': 'pop_50M_100M',
+    '100M+': 'pop_over100M',
+  };
 
   String prompt(Question question) =>
       t('q_${question.type.name}', {'subject': question.subject});
@@ -175,6 +195,11 @@ class AppStrings {
     'clue_landmark': 'Landmark',
     'clue_capital': 'Capital',
     'clue_flag': 'Flag',
+    'pop_under1M': '<1M',
+    'pop_1M_10M': '1M-10M',
+    'pop_10M_50M': '10M-50M',
+    'pop_50M_100M': '50M-100M',
+    'pop_over100M': '100M+',
 
     // Game
     'game_loading': 'Packing your bags…',
@@ -372,6 +397,11 @@ class AppStrings {
     'clue_landmark': 'Ünlü yer',
     'clue_capital': 'Başkent',
     'clue_flag': 'Bayrak',
+    'pop_under1M': '1 milyondan az',
+    'pop_1M_10M': '1-10 milyon',
+    'pop_10M_50M': '10-50 milyon',
+    'pop_50M_100M': '50-100 milyon',
+    'pop_over100M': '100 milyondan fazla',
 
     // Game
     'game_loading': 'Bavullar hazırlanıyor…',
