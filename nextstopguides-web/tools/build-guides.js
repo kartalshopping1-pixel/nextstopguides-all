@@ -96,7 +96,7 @@ function guideSocialImage(g) {
 }
 const guideLargeImage = (g) => (R.isLocalImage(g.image) ? abs(g.image) : R.largeImage(g.image));
 const DEFAULT_OG = hasFile('assets/img/og-image.jpg')
-  ? { url: abs('assets/img/og-image.jpg'), w: 1200, h: 630 }
+  ? { url: abs('assets/img/og-image.jpg') + '?v=' + require('crypto').createHash('md5').update(fs.readFileSync(path.join(ROOT, 'assets/img/og-image.jpg'))).digest('hex').slice(0, 8), w: 1200, h: 630 }
   : guideSocialImage(GUIDES[0]);
 const liveItems = R.liveItems();
 const getPath = (obj, p) => p.split('.').reduce((o, k) => (o && o[k] !== undefined ? o[k] : undefined), obj);
