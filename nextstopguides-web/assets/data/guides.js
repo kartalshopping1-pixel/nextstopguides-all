@@ -250,7 +250,7 @@ window.NSG_CATALOG = {
       tags: ['beach', 'islands', 'temples', 'street food', 'floating market'],
       image: 'assets/img/guides/thailand-7-day-itinerary.jpg',
       etsy: 'https://www.etsy.com/listing/4586664518/thailand-itinerary-7-days-bangkok-krabi',
-      shopier: '',   // TODO listing URL (Shopier ürün linki, Türkçe baskı)
+      shopier: 'https://www.shopier.com/NextStopGuides/51433675',
       priceTRY: '',
       price: '',
       text: {
@@ -320,7 +320,7 @@ window.NSG_CATALOG = {
       tags: ['first trip', 'city break', 'long weekend', 'Eiffel Tower', 'Louvre', 'Montmartre'],
       image: 'assets/img/guides/paris-3-day-itinerary.jpg',
       etsy: 'https://www.etsy.com/listing/4586670451/paris-itinerary-3-days-printable-paris',
-      shopier: '',   // TODO listing URL (Shopier ürün linki, Türkçe baskı)
+      shopier: 'https://www.shopier.com/NextStopGuides/51435658',
       priceTRY: '',
       price: '',
       text: {
@@ -390,7 +390,7 @@ window.NSG_CATALOG = {
       tags: ['first trip', 'day trip', 'Versailles', 'Giverny', 'Eiffel Tower', 'Louvre'],
       image: 'assets/img/guides/paris-5-day-itinerary.jpg',
       etsy: 'https://www.etsy.com/listing/4586675821/paris-itinerary-5-days-with-versailles',
-      shopier: '',   // TODO listing URL (Shopier ürün linki, Türkçe baskı)
+      shopier: 'https://www.shopier.com/NextStopGuides/51435722',
       priceTRY: '',
       price: '',
       text: {
@@ -460,7 +460,7 @@ window.NSG_CATALOG = {
       tags: ['Caucasus', 'mountains', 'wine', 'Kakheti', 'Black Sea', 'sulphur baths', 'day trip'],
       image: 'assets/img/guides/georgia-5-day-itinerary.jpg',
       etsy: 'https://www.etsy.com/listing/4586678691/georgia-itinerary-5-days-tbilisi-kazbegi',
-      shopier: '',   // TODO listing URL (Shopier ürün linki, Türkçe baskı)
+      shopier: 'https://www.shopier.com/NextStopGuides/51436571',
       priceTRY: '',
       price: '',
       text: {
@@ -530,7 +530,7 @@ window.NSG_CATALOG = {
       tags: ['Burj Khalifa', 'desert safari', 'souks', 'beach', 'Dubai Marina', 'Abu Dhabi'],
       image: 'assets/img/guides/dubai-4-day-itinerary.jpg',
       etsy: 'https://www.etsy.com/listing/4586684708/dubai-itinerary-4-days-printable-dubai',
-      shopier: '',   // TODO listing URL (Shopier ürün linki, Türkçe baskı)
+      shopier: 'https://www.shopier.com/NextStopGuides/51436651',
       priceTRY: '',
       price: '',
       text: {
@@ -600,7 +600,7 @@ window.NSG_CATALOG = {
       tags: ['pyramids', 'Grand Egyptian Museum', 'Valley of the Kings', 'Nile', 'ancient history', 'first trip'],
       image: 'assets/img/guides/egypt-cairo-luxor-5-day-itinerary.jpg',
       etsy: 'https://www.etsy.com/listing/4586687206/egypt-itinerary-5-days-cairo-giza-luxor',
-      shopier: '',   // TODO listing URL (Shopier ürün linki, Türkçe baskı)
+      shopier: 'https://www.shopier.com/NextStopGuides/51436756',
       priceTRY: '',
       price: '',
       text: {
@@ -670,7 +670,7 @@ window.NSG_CATALOG = {
       tags: ['Red Sea', 'beach', 'snorkelling', 'pyramids', 'Grand Egyptian Museum', 'Valley of the Kings'],
       image: 'assets/img/guides/egypt-hurghada-luxor-cairo-7-day-itinerary.jpg',
       etsy: 'https://www.etsy.com/listing/4586704443/egypt-itinerary-7-days-hurghada-luxor',
-      shopier: '',   // TODO listing URL (Shopier ürün linki, Türkçe baskı)
+      shopier: 'https://www.shopier.com/NextStopGuides/51437009',
       priceTRY: '',
       price: '',
       text: {
@@ -740,7 +740,7 @@ window.NSG_CATALOG = {
       tags: ['Red Sea', 'beach', 'snorkelling', 'Ras Mohammed', 'Mount Sinai', 'pyramids', 'Valley of the Kings'],
       image: 'assets/img/guides/egypt-sharm-cairo-luxor-8-day-itinerary.jpg',
       etsy: 'https://www.etsy.com/listing/4586699833/egypt-itinerary-8-days-sharm-el-sheikh',
-      shopier: '',   // TODO listing URL (Shopier ürün linki, Türkçe baskı)
+      shopier: 'https://www.shopier.com/NextStopGuides/51437104',
       priceTRY: '',
       price: '',
       text: {
